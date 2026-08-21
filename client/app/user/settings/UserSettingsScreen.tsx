@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useContext, useEffect, useState, useTransition } from "react";
+import useSWR from "swr";
 import Competitor from "~/app/components/Competitor.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import Button from "~/app/components/UI/Button.tsx";
@@ -15,11 +16,11 @@ import { authClient } from "~/helpers/auth-client.ts";
 import { HAS_WCA_AUTH } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { useSession } from "~/helpers/hooks.ts";
+import { SwrKey } from "~/helpers/swr-keys.ts";
 import type { NavigationItem } from "~/helpers/types/NavigationItem.ts";
 import type { SpaceType } from "~/helpers/types.ts";
 import { getActionError, getHasRole } from "~/helpers/utility-functions.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
-import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import { orgRolesObject } from "~/server/organization-permissions.ts";
 import { linkWcaProfileSF, logUserDeletedSF } from "~/server/server-functions/user-server-functions.ts";
 
@@ -36,15 +37,14 @@ type Account = {
 
 type Props = {
   initPerson: PersonResponse | undefined;
-  regions: RegionResponse[] | undefined;
-  spaceType: SpaceType | undefined;
 };
 
-function UserSettingsScreen({ initPerson, regions, spaceType }: Props) {
+function UserSettingsScreen({ initPerson }: Props) {
   const router = useRouter();
   const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
   const { session, user, member } = useSession();
 
+  const { data: spaceType }: { data: SpaceType | undefined } = useSWR(SwrKey.SpaceType, { suspense: true });
   const [status, setStatus] = useQueryState("status", parseAsStringLiteral(["signup-success", "email-change-success"]));
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]["value"]>("account");
   const [person, setPerson] = useState(initPerson);
@@ -196,11 +196,11 @@ function UserSettingsScreen({ initPerson, regions, spaceType }: Props) {
             </p>
           )}
 
-          {person && regions ? (
+          {person ? (
             <div className="d-flex flex-wrap gap-2">
               <span>Your competitor profile:</span>
               <div className="d-flex gap-2">
-                <Competitor person={person} regions={regions} showLocalizedName />
+                <Competitor person={person} showLocalizedName />
                 <span>
                   (ID: <strong>{person.id}</strong>)
                 </span>
@@ -246,7 +246,7 @@ function UserSettingsScreen({ initPerson, regions, spaceType }: Props) {
       )}
 
       {/* If this tab is active, that means the user has an active org and regions are defined */}
-      {activeTab === "member-request" && <MemberRequestTab regions={regions!} spaceType={spaceType} />}
+      {activeTab === "member-request" && <MemberRequestTab />}
     </>
   );
 }

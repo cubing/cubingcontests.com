@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { SWRConfig } from "swr";
 import ContestsTable from "~/app/components/ContestsTable.tsx";
 import DonateButton from "~/app/components/content/DonateButton.tsx";
 import DonationGoals from "~/app/components/content/DonationGoals.tsx";
@@ -7,6 +8,7 @@ import EventButtons from "~/app/components/EventButtons.tsx";
 import RegionSelect from "~/app/components/RegionSelect.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
+import { SwrKey } from "~/helpers/swr-keys.ts";
 import { getContests } from "~/server/server-only-functions/contests-functions.ts";
 import {
   getEventCategories,
@@ -62,27 +64,29 @@ async function ContestsPage({ params, searchParams }: Props) {
       {events.length === 0 ? (
         <LoadingError loadingEntity="competitions" reason="events not found" />
       ) : (
-        <>
-          <div className="mb-3 px-2">
-            {organization.metadata.showDonationLinks && kofiGoalProgress !== null && (
-              <>
-                <DonationGoals kofiGoalProgress={kofiGoalProgress} compact />
-                <div className="my-3">
-                  <DonateButton />
-                </div>
-              </>
-            )}
+        <SWRConfig value={{ fallback: { [SwrKey.Regions]: regions } }}>
+          <Suspense fallback={<Loading />}>
+            <div className="mb-3 px-2">
+              {organization.metadata.showDonationLinks && kofiGoalProgress !== null && (
+                <>
+                  <DonationGoals kofiGoalProgress={kofiGoalProgress} compact />
+                  <div className="my-3">
+                    <DonateButton />
+                  </div>
+                </>
+              )}
 
-            <EventButtons events={events} eventCategories={eventCategories} resetOnSameEventClick />
-            <div style={{ maxWidth: "24rem" }}>
-              <RegionSelect regions={regions} />
+              <EventButtons events={events} eventCategories={eventCategories} resetOnSameEventClick />
+              <div style={{ maxWidth: "24rem" }}>
+                <RegionSelect />
+              </div>
             </div>
-          </div>
+          </Suspense>
 
           <Suspense fallback={<Loading />}>
-            <ContestsTable contestsPromise={contestsPromise} regions={regions} />
+            <ContestsTable contestsPromise={contestsPromise} />
           </Suspense>
-        </>
+        </SWRConfig>
       )}
     </section>
   );

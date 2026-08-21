@@ -1,9 +1,12 @@
+"use client";
+
 import * as Flags from "country-flag-icons/react/3x2";
+import useSWR from "swr";
+import { SwrKey } from "~/helpers/swr-keys.ts";
 import type { RegionResponse } from "~/server/db/schema/regions.ts";
 
 type Props = {
   regionCode: string;
-  regions: RegionResponse[];
   swapPositions?: boolean;
 } & (
   | {
@@ -16,7 +19,9 @@ type Props = {
     }
 );
 
-function Region({ regionCode, regions, swapPositions, noText, shorten }: Props) {
+function Region({ regionCode, swapPositions, noText, shorten }: Props) {
+  const { data: regions }: { data: RegionResponse[] } = useSWR(SwrKey.Regions, { suspense: true });
+
   const FlagComponent = (Flags as any)[regionCode];
 
   const getRegion = (regionCode: string): string => {

@@ -6,7 +6,6 @@ import { roundTypes } from "~/helpers/roundTypes.ts";
 import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
 import type { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
-import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import type { ResultResponse } from "~/server/db/schema/results.ts";
 import type { RoundResponse } from "~/server/db/schema/rounds.ts";
 import EventTitle from "./EventTitle.tsx";
@@ -19,10 +18,9 @@ type Props = {
   results: ResultResponse[];
   persons: PersonResponse[];
   recordConfigs: RecordConfigResponse[];
-  regions: RegionResponse[];
 };
 
-function EventResultsTable({ event, rounds, results, persons, recordConfigs, regions }: Props) {
+function EventResultsTable({ event, rounds, results, persons, recordConfigs }: Props) {
   const { slug }: { slug: string } = useParams();
 
   // Display finals by default
@@ -61,7 +59,6 @@ function EventResultsTable({ event, rounds, results, persons, recordConfigs, reg
         results={roundResults}
         persons={persons}
         recordConfigs={recordConfigs}
-        regions={regions}
       />
     </div>
   );

@@ -10,7 +10,6 @@ import { C } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { getActionError } from "~/helpers/utility-functions.ts";
 import type { ContestResponse } from "~/server/db/schema/contests.ts";
-import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import { getContestsByNameSF } from "~/server/server-functions/contest-server-functions.ts";
 import FormTextInput from "./FormTextInput.tsx";
 
@@ -18,19 +17,11 @@ type Props = {
   contestName: string;
   setContestName: (val: string) => void;
   setContest: (val: ContestResponse | null) => void;
-  regions: RegionResponse[];
   tooltip?: string;
   disabled?: boolean;
 };
 
-function ContestSelect({
-  contestName,
-  setContestName,
-  setContest,
-  regions,
-  tooltip,
-  disabled,
-}: Props) {
+function ContestSelect({ contestName, setContestName, setContest, tooltip, disabled }: Props) {
   const { changeErrorMessages, resetMessages } = useContext(MainContext);
 
   const { executeAsync: getContestsByName, isPending } = useAction(getContestsByNameSF);
@@ -134,7 +125,7 @@ function ContestSelect({
                 <div className="d-flex gap-2 align-items-center">
                   <ContestTypeBadge type={matchedContest.type} display="icon" />
                   <span>{matchedContest.shortName}</span>
-                  <Region regionCode={matchedContest.regionCode} regions={regions} noText />
+                  <Region regionCode={matchedContest.regionCode} noText />
                 </div>
               </li>
             ))

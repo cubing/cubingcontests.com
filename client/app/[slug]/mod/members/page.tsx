@@ -1,7 +1,11 @@
 import { inArray } from "drizzle-orm";
+import { Suspense } from "react";
+import { SWRConfig } from "swr";
 import ManageMembersScreen from "~/app/[slug]/mod/members/ManageMembersScreen.tsx";
 import { getTabs } from "~/app/[slug]/mod/members/tabs.ts";
+import Loading from "~/app/components/UI/Loading.tsx";
 import Tabs from "~/app/components/UI/Tabs.tsx";
+import { SwrKey } from "~/helpers/swr-keys.ts";
 import { db } from "~/server/db/provider.ts";
 import { personsPublicCols, personsTable } from "~/server/db/schema/persons.ts";
 import { authorizeUser, getRegions, getSettingFromDb } from "~/server/server-only-functions/server-only-functions.ts";
@@ -19,7 +23,7 @@ async function ManageMembersPage({ params }: Props) {
     orgPermissions: { member: ["create", "update", "delete"] },
   });
 
-  const [members, regions, videoBasedResultsEnabled] = await Promise.all([
+  const [members, regions, spaceType, videoBasedResultsEnabled] = await Promise.all([
     db.query.members.findMany({
       with: { user: { columns: { id: true, name: true, email: true } } },
       columns: { id: true, organizationId: true, userId: true, role: true, personId: true, createdAt: true },
@@ -27,6 +31,7 @@ async function ManageMembersPage({ params }: Props) {
       orderBy: { createdAt: "desc" },
     }),
     getRegions(organization!.id),
+    getSettingFromDb({ key: "space-type", organizationId: organization!.id }),
     getSettingFromDb({ key: "video-based-results-enabled", organizationId: organization!.id }),
   ]);
 
@@ -37,12 +42,22 @@ async function ManageMembersPage({ params }: Props) {
     <>
       <Tabs tabs={getTabs(slug)} activeTab="members" forServerSidePage />
 
-      <ManageMembersScreen
-        members={members as any}
-        memberPersons={persons}
-        regions={regions}
-        videoBasedResultsEnabled={videoBasedResultsEnabled === "true"}
-      />
+      <SWRConfig
+        value={{
+          fallback: {
+            [SwrKey.SpaceType]: spaceType,
+            [SwrKey.Regions]: regions,
+          },
+        }}
+      >
+        <Suspense fallback={<Loading />}>
+          <ManageMembersScreen
+            members={members as any}
+            memberPersons={persons}
+            videoBasedResultsEnabled={videoBasedResultsEnabled === "true"}
+          />
+        </Suspense>
+      </SWRConfig>
     </>
   );
 }

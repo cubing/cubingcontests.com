@@ -3,16 +3,11 @@
 import { useQueryState } from "nuqs";
 import FormRegionSelect from "~/app/components/form/FormRegionSelect.tsx";
 import { C } from "~/helpers/constants.ts";
-import type { SelectRegion } from "~/server/db/schema/regions.ts";
 
-type Props = {
-  regions: Pick<SelectRegion, "code" | "name" | "shortName" | "type">[];
-};
-
-function RegionSelect({ regions }: Props) {
+function RegionSelect() {
   const [region, setRegion] = useQueryState("region", { defaultValue: C.notSelectedOption, shallow: false });
 
-  return <FormRegionSelect regionCode={region} setRegionCode={setRegion} regions={regions} continentOptions />;
+  return <FormRegionSelect regionCode={region} setRegionCode={setRegion} continentOptions />;
 }
 
 export default RegionSelect;

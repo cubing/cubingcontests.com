@@ -4,17 +4,15 @@ import { use } from "react";
 import RankingRow from "~/app/[slug]/rankings/[eventId]/[type]/RankingRow.tsx";
 import type { Ranking } from "~/helpers/types/Rankings.ts";
 import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
-import type { RegionResponse } from "~/server/db/schema/regions.ts";
 
 type Props = {
   rankingsPromise: Promise<Ranking[]>;
   event: EventResponseWithCategory;
-  regions: RegionResponse[];
   type: "single" | "average" | "all-avg-formats";
   show?: "results";
 };
 
-function RankingsTable({ rankingsPromise, event, regions, type, show }: Props) {
+function RankingsTable({ rankingsPromise, event, type, show }: Props) {
   const rankings = use(rankingsPromise);
 
   const hasComp = rankings.some((r) => r.contest);
@@ -50,7 +48,6 @@ function RankingsTable({ rankingsPromise, event, regions, type, show }: Props) {
               ranking={ranking}
               isTiedRanking={ranking.ranking !== i + 1}
               event={event}
-              regions={regions}
               showAllTeammates={showAllTeammates}
               showTeamColumn={showTeamColumn}
               showDetailsColumn={showDetailsColumn}

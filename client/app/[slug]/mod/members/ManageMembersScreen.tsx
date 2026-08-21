@@ -17,21 +17,18 @@ import { useSession } from "~/helpers/hooks.ts";
 import type { InputPerson } from "~/helpers/types.ts";
 import { getActionError, getHasRole, getSimplifiedString } from "~/helpers/utility-functions.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
-import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import { type OrganizationRole, orgRolesObject } from "~/server/organization-permissions.ts";
 import { removeMemberSF, updateMemberSF } from "~/server/server-functions/user-server-functions.ts";
 
 type Props = {
   members: (typeof authClient.$Infer.Member)[];
   memberPersons: PersonResponse[];
-  regions: RegionResponse[];
   videoBasedResultsEnabled: boolean;
 };
 
 function ManageMembersScreen({
   members: initMembers,
   memberPersons: initMemberPersons,
-  regions,
   videoBasedResultsEnabled,
 }: Props) {
   const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
@@ -164,7 +161,6 @@ function ManageMembersScreen({
             setPersons={setPersons}
             personNames={personNames}
             setPersonNames={setPersonNames}
-            regions={regions}
             disabled={isPending}
             onSelectPerson={() => setIsMember(true)}
             addNewPersonMode="default"
@@ -249,7 +245,7 @@ function ManageMembersScreen({
                     {m.user.name}
                   </td>
                   <td>{m.user.email}</td>
-                  <td>{person && <Competitor person={person} regions={regions} noFlag />}</td>
+                  <td>{person && <Competitor person={person} noFlag />}</td>
                   <td>{roles}</td>
                   <td>
                     <div className="d-flex gap-2">

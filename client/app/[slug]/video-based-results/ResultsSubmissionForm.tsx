@@ -27,7 +27,6 @@ import { getActionError, getBlankCompetitors, getRoundFormatOptions, slugPath } 
 import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
 import type { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
-import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import type { Attempt, SelectResult } from "~/server/db/schema/results.ts";
 import {
   createVideoBasedResultSF,
@@ -40,7 +39,6 @@ type Props = {
   videoBasedResultsContactEmail: string | null;
   events: EventResponseWithCategory[];
   recordConfigs: RecordConfigResponse[];
-  regions: RegionResponse[];
   isVideoBasedResultReviewer: boolean;
 } & (
   | {
@@ -62,7 +60,6 @@ function ResultsSubmissionForm({
   videoBasedResultsContactEmail,
   events,
   recordConfigs,
-  regions,
   result,
   participants: initParticipants,
   creator,
@@ -253,12 +250,7 @@ function ResultsSubmissionForm({
 
       <Form hideSubmitButton className="mb-5">
         {result && (
-          <CreatorDetails
-            creator={creator}
-            regions={regions}
-            createdExternally={Boolean(result.createdExternally)}
-            className="mb-3"
-          />
+          <CreatorDetails creator={creator} createdExternally={Boolean(result.createdExternally)} className="mb-3" />
         )}
         <FormEventSelect
           events={events}
@@ -281,7 +273,6 @@ function ResultsSubmissionForm({
           setPersonNames={setPersonNames}
           persons={participants}
           setPersons={setParticipants}
-          regions={regions}
           nextFocusTargetId={event.format !== "multi" ? "attempt_1" : "attempt_1_solved"}
           redirectToOnAddPerson={pathname}
           addNewPersonMode={isVideoBasedResultReviewer ? "default" : "disabled"}

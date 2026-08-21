@@ -3,7 +3,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { ReactElement } from "react";
 import Competitor from "~/app/components/Competitor.tsx";
 import type { Creator } from "~/helpers/types.ts";
-import type { RegionResponse } from "~/server/db/schema/regions.ts";
 
 const ApiIcon = (
   <span title="created via API">
@@ -13,7 +12,6 @@ const ApiIcon = (
 
 type Props = {
   creator: Creator | null; // null means the user has been deleted
-  regions: RegionResponse[];
   createdExternally?: boolean;
   isCurrentUser?: boolean;
   small?: boolean;
@@ -21,7 +19,6 @@ type Props = {
 
 function CreatorDetails({
   creator,
-  regions,
   createdExternally = false,
   isCurrentUser = false,
   small = false,
@@ -42,7 +39,7 @@ function CreatorDetails({
   }
 
   const creatorName = creator?.email ? <a href={`mailto:${creator.email}`}>{creator!.name}</a> : creator!.name;
-  const competitor = creator?.person ? <Competitor person={creator.person} regions={regions} noFlag /> : undefined;
+  const competitor = creator?.person ? <Competitor person={creator.person} noFlag /> : undefined;
 
   return (
     <div className={`d-flex column-gap-2 flex-wrap align-items-center ${className}`}>

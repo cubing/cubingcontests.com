@@ -2,6 +2,7 @@ import omitBy from "lodash/omitBy";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { SWRConfig } from "swr";
 import z from "zod";
 import RecordsTable from "~/app/[slug]/records/[eventCategory]/RecordsTable.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
@@ -9,6 +10,7 @@ import RecordCategoriesButtonGroup from "~/app/components/RecordCategoriesButton
 import RegionSelect from "~/app/components/RegionSelect.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import Tabs from "~/app/components/UI/Tabs.tsx";
+import { SwrKey } from "~/helpers/swr-keys.ts";
 import type { NavigationItem } from "~/helpers/types/NavigationItem.ts";
 import { type RecordCategory, RecordCategoryValues } from "~/helpers/types.ts";
 import { slugPath } from "~/helpers/utility-functions.ts";
@@ -89,57 +91,60 @@ async function RecordsPage({ params, searchParams }: Props) {
   const selectedCatEvents = events.filter((e) => e.categoryId === selectedCat.id);
 
   return (
-    <section>
-      <h2 className="mb-4 text-center">Records</h2>
+    <SWRConfig value={{ fallback: { [SwrKey.Regions]: regions } }}>
+      <section>
+        <h2 className="mb-4 text-center">Records</h2>
 
-      <Tabs tabs={tabs} activeTab={eventCategory} forServerSidePage />
+        <Tabs tabs={tabs} activeTab={eventCategory} forServerSidePage />
 
-      <div className="px-2">
-        {selectedCat.description && <p>{selectedCat.description}</p>}
+        <Suspense fallback={<Loading />}>
+          <div className="px-2">
+            {selectedCat.description && <p>{selectedCat.description}</p>}
 
-        <h4>Event</h4>
-        <EventButtons
-          events={selectedCatEvents}
-          eventCategories={eventCategories}
-          resetOnSameEventClick
-          showAllEvents
-        />
+            <h4>Event</h4>
+            <EventButtons
+              events={selectedCatEvents}
+              eventCategories={eventCategories}
+              resetOnSameEventClick
+              showAllEvents
+            />
 
-        {/* Similar code to the rankings page */}
-        <div className="d-flex flex-wrap gap-3">
-          <RegionSelect regions={regions} />
+            {/* Similar code to the rankings page */}
+            <div className="d-flex flex-wrap gap-3">
+              <RegionSelect />
 
-          <RecordCategoriesButtonGroup
-            pathTemplate={slugPath(
-              slug,
-              `/records/${eventCategory}?${
-                urlSearchParamsWithoutCategory.toString() ? `${urlSearchParamsWithoutCategory}&` : ""
-              }category=__CATEGORY__`,
-            )}
-            selectedCategory={recordCategory}
-            recordCategories={enabledRecordCategories}
+              <RecordCategoriesButtonGroup
+                pathTemplate={slugPath(
+                  slug,
+                  `/records/${eventCategory}?${
+                    urlSearchParamsWithoutCategory.toString() ? `${urlSearchParamsWithoutCategory}&` : ""
+                  }category=__CATEGORY__`,
+                )}
+                selectedCategory={recordCategory}
+                recordCategories={enabledRecordCategories}
+              />
+            </div>
+          </div>
+
+          {selectedCat.videoBased && (
+            <Link
+              href={slugPath(slug, "/video-based-results/submit")}
+              prefetch={false}
+              className="btn btn-success btn ms-2"
+            >
+              Submit a result
+            </Link>
+          )}
+        </Suspense>
+
+        <Suspense fallback={<Loading />}>
+          <RecordsTable
+            recordsPromise={recordsPromise}
+            events={events.filter((e) => e.categoryId === selectedCat.id)}
           />
-        </div>
-      </div>
-
-      {selectedCat.videoBased && (
-        <Link
-          href={slugPath(slug, "/video-based-results/submit")}
-          prefetch={false}
-          className="btn btn-success btn ms-2"
-        >
-          Submit a result
-        </Link>
-      )}
-
-      <Suspense fallback={<Loading />}>
-        <RecordsTable
-          recordsPromise={recordsPromise}
-          events={events.filter((e) => e.categoryId === selectedCat.id)}
-          regions={regions}
-        />
-      </Suspense>
-    </section>
+        </Suspense>
+      </section>
+    </SWRConfig>
   );
 }
 

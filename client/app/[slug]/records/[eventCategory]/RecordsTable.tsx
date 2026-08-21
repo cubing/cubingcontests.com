@@ -7,15 +7,13 @@ import RecordRow from "~/app/[slug]/records/[eventCategory]/RecordRow.tsx";
 import EventTitle from "~/app/components/EventTitle.tsx";
 import type { RecordRanking } from "~/helpers/types/Rankings.tsx";
 import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
-import type { RegionResponse } from "~/server/db/schema/regions.ts";
 
 type Props = {
   recordsPromise: Promise<RecordRanking[]>;
   events: Pick<EventResponseWithCategory, "eventId" | "name" | "format" | "description" | "category">[];
-  regions: RegionResponse[];
 };
 
-function RecordsTable({ recordsPromise, events, regions }: Props) {
+function RecordsTable({ recordsPromise, events }: Props) {
   const records = use(recordsPromise);
   const { slug }: { slug: string } = useParams();
 
@@ -91,7 +89,6 @@ function RecordsTable({ recordsPromise, events, regions }: Props) {
                             type={record.type}
                             record={record}
                             event={event}
-                            regions={regions}
                             mixedRecords
                           />
                         ) : (
@@ -101,7 +98,6 @@ function RecordsTable({ recordsPromise, events, regions }: Props) {
                               type={record.type}
                               record={record}
                               event={event}
-                              regions={regions}
                               showOnlyPersonWithId={i}
                             />
                           ))

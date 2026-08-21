@@ -1,8 +1,8 @@
-import { eq } from "drizzle-orm";
 import omitBy from "lodash/omitBy";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { SWRConfig } from "swr";
 import z from "zod";
 import RankingsTable from "~/app/[slug]/rankings/[eventId]/[type]/RankingsTable.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
@@ -13,6 +13,7 @@ import Loading from "~/app/components/UI/Loading.tsx";
 import Tooltip from "~/app/components/UI/Tooltip.tsx";
 import { IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
+import { SwrKey } from "~/helpers/swr-keys.ts";
 import { type RecordCategory, RecordCategoryValues } from "~/helpers/types.ts";
 import { shortenEventName, slugPath } from "~/helpers/utility-functions.ts";
 import { db } from "~/server/db/provider.ts";
@@ -100,152 +101,156 @@ async function RankingsPage({ params, searchParams }: Props) {
     <section>
       <h2 className="mb-3 text-center">Rankings</h2>
 
-      <div className="mb-3 px-2">
-        <h4>Event</h4>
-        <EventButtons
-          events={visibleEvents}
-          eventCategories={eventCategories}
-          eventIdOverride={eventId}
-          pathTemplate={slugPath(slug, `/rankings/__EVENT_ID__/${type}`)}
-        />
-
-        {/* Similar code to the records page */}
-        <div className="d-flex mb-4 flex-wrap gap-3">
-          <RegionSelect regions={regions} />
-
-          <div className="d-flex flex-wrap gap-3">
-            <div>
-              <h5 className="d-flex gap-1">
-                Type
-                {type === "all-avg-formats" && (
-                  <Tooltip
-                    id="type_tooltip"
-                    text="Includes both Mo3 and Ao5 results, even if they don't match the ranked average format"
-                  />
-                )}
-              </h5>
-              {/* biome-ignore lint/a11y/useSemanticElements: this is the most suitable way to make a button group */}
-              <div className="btn-group btn-group-sm mt-2" role="group" aria-label="Type">
-                <Link
-                  href={slugPath(slug, `/rankings/${eventId}/single?${urlSearchParams}`)}
-                  prefetch={false}
-                  className={`btn btn-primary ${type === "single" ? "active" : ""}`}
-                >
-                  Single
-                </Link>
-                <Link
-                  href={slugPath(slug, `/rankings/${eventId}/average?${urlSearchParams}`)}
-                  prefetch={false}
-                  className={`btn btn-primary ${type === "average" ? "active" : ""}`}
-                >
-                  {roundFormat.bestAndWorstAttemptsToExclude > 0 ? "Average" : "Mean"}
-                </Link>
-                <Link
-                  href={slugPath(slug, `/rankings/${eventId}/all-avg-formats?${urlSearchParams}`)}
-                  prefetch={false}
-                  className={`btn btn-primary ${type === "all-avg-formats" ? "active" : ""}`}
-                >
-                  All Avgs
-                </Link>
-              </div>
-            </div>
-
-            <div>
-              <h5>Show</h5>
-              {/* biome-ignore lint/a11y/useSemanticElements: this is the most suitable way to make a button group */}
-              <div className="btn-group btn-group-sm mt-2" role="group" aria-label="Show">
-                <Link
-                  href={slugPath(slug, `/rankings/${eventId}/${type}?${urlSearchParamsWithoutShow}`)}
-                  prefetch={false}
-                  className={`btn btn-primary ${!show ? "active" : ""}`}
-                >
-                  Top Persons
-                </Link>
-                <Link
-                  href={slugPath(
-                    slug,
-                    `/rankings/${eventId}/${type}?${
-                      urlSearchParamsWithoutShow.toString() ? `${urlSearchParamsWithoutShow}&` : ""
-                    }show=results`,
-                  )}
-                  prefetch={false}
-                  className={`btn btn-primary ${show ? "active" : ""}`}
-                >
-                  Top Results
-                </Link>
-              </div>
-            </div>
-
-            <div>
-              <h5>Top</h5>
-              {/* biome-ignore lint/a11y/useSemanticElements: this is the most suitable way to make a button group */}
-              <div className="btn-group btn-group-sm mt-2" role="group" aria-label="Top">
-                <Link
-                  href={slugPath(slug, `/rankings/${eventId}/${type}?${urlSearchParamsWithoutTopN}`)}
-                  prefetch={false}
-                  className={`btn btn-primary ${!topN || topN === 100 ? "active" : ""}`}
-                >
-                  100
-                </Link>
-                <Link
-                  href={slugPath(
-                    slug,
-                    `/rankings/${eventId}/${type}?${
-                      urlSearchParamsWithoutTopN.toString() ? `${urlSearchParamsWithoutTopN}&` : ""
-                    }topN=1000`,
-                  )}
-                  prefetch={false}
-                  className={`btn btn-primary ${topN === 1000 ? "active" : ""}`}
-                >
-                  1000
-                </Link>
-                <Link
-                  href={slugPath(
-                    slug,
-                    `/rankings/${eventId}/${type}?${
-                      urlSearchParamsWithoutTopN.toString() ? `${urlSearchParamsWithoutTopN}&` : ""
-                    }topN=10000`,
-                  )}
-                  prefetch={false}
-                  className={`btn btn-primary ${topN === 10000 ? "active" : ""}`}
-                >
-                  10000
-                </Link>
-              </div>
-            </div>
-
-            <RecordCategoriesButtonGroup
-              pathTemplate={slugPath(
-                slug,
-                `/rankings/${eventId}/${type}?${
-                  urlSearchParamsWithoutCategory.toString() ? `${urlSearchParamsWithoutCategory}&` : ""
-                }category=__CATEGORY__`,
-              )}
-              selectedCategory={recordCategory}
-              recordCategories={enabledRecordCategories}
-              allCategoriesOption
+      <SWRConfig value={{ fallback: { [SwrKey.Regions]: regions } }}>
+        <Suspense fallback={<Loading />}>
+          <div className="mb-3 px-2">
+            <h4>Event</h4>
+            <EventButtons
+              events={visibleEvents}
+              eventCategories={eventCategories}
+              eventIdOverride={eventId}
+              pathTemplate={slugPath(slug, `/rankings/__EVENT_ID__/${type}`)}
             />
+
+            {/* Similar code to the records page */}
+            <div className="d-flex mb-4 flex-wrap gap-3">
+              <RegionSelect />
+
+              <div className="d-flex flex-wrap gap-3">
+                <div>
+                  <h5 className="d-flex gap-1">
+                    Type
+                    {type === "all-avg-formats" && (
+                      <Tooltip
+                        id="type_tooltip"
+                        text="Includes both Mo3 and Ao5 results, even if they don't match the ranked average format"
+                      />
+                    )}
+                  </h5>
+                  {/* biome-ignore lint/a11y/useSemanticElements: this is the most suitable way to make a button group */}
+                  <div className="btn-group btn-group-sm mt-2" role="group" aria-label="Type">
+                    <Link
+                      href={slugPath(slug, `/rankings/${eventId}/single?${urlSearchParams}`)}
+                      prefetch={false}
+                      className={`btn btn-primary ${type === "single" ? "active" : ""}`}
+                    >
+                      Single
+                    </Link>
+                    <Link
+                      href={slugPath(slug, `/rankings/${eventId}/average?${urlSearchParams}`)}
+                      prefetch={false}
+                      className={`btn btn-primary ${type === "average" ? "active" : ""}`}
+                    >
+                      {roundFormat.bestAndWorstAttemptsToExclude > 0 ? "Average" : "Mean"}
+                    </Link>
+                    <Link
+                      href={slugPath(slug, `/rankings/${eventId}/all-avg-formats?${urlSearchParams}`)}
+                      prefetch={false}
+                      className={`btn btn-primary ${type === "all-avg-formats" ? "active" : ""}`}
+                    >
+                      All Avgs
+                    </Link>
+                  </div>
+                </div>
+
+                <div>
+                  <h5>Show</h5>
+                  {/* biome-ignore lint/a11y/useSemanticElements: this is the most suitable way to make a button group */}
+                  <div className="btn-group btn-group-sm mt-2" role="group" aria-label="Show">
+                    <Link
+                      href={slugPath(slug, `/rankings/${eventId}/${type}?${urlSearchParamsWithoutShow}`)}
+                      prefetch={false}
+                      className={`btn btn-primary ${!show ? "active" : ""}`}
+                    >
+                      Top Persons
+                    </Link>
+                    <Link
+                      href={slugPath(
+                        slug,
+                        `/rankings/${eventId}/${type}?${
+                          urlSearchParamsWithoutShow.toString() ? `${urlSearchParamsWithoutShow}&` : ""
+                        }show=results`,
+                      )}
+                      prefetch={false}
+                      className={`btn btn-primary ${show ? "active" : ""}`}
+                    >
+                      Top Results
+                    </Link>
+                  </div>
+                </div>
+
+                <div>
+                  <h5>Top</h5>
+                  {/* biome-ignore lint/a11y/useSemanticElements: this is the most suitable way to make a button group */}
+                  <div className="btn-group btn-group-sm mt-2" role="group" aria-label="Top">
+                    <Link
+                      href={slugPath(slug, `/rankings/${eventId}/${type}?${urlSearchParamsWithoutTopN}`)}
+                      prefetch={false}
+                      className={`btn btn-primary ${!topN || topN === 100 ? "active" : ""}`}
+                    >
+                      100
+                    </Link>
+                    <Link
+                      href={slugPath(
+                        slug,
+                        `/rankings/${eventId}/${type}?${
+                          urlSearchParamsWithoutTopN.toString() ? `${urlSearchParamsWithoutTopN}&` : ""
+                        }topN=1000`,
+                      )}
+                      prefetch={false}
+                      className={`btn btn-primary ${topN === 1000 ? "active" : ""}`}
+                    >
+                      1000
+                    </Link>
+                    <Link
+                      href={slugPath(
+                        slug,
+                        `/rankings/${eventId}/${type}?${
+                          urlSearchParamsWithoutTopN.toString() ? `${urlSearchParamsWithoutTopN}&` : ""
+                        }topN=10000`,
+                      )}
+                      prefetch={false}
+                      className={`btn btn-primary ${topN === 10000 ? "active" : ""}`}
+                    >
+                      10000
+                    </Link>
+                  </div>
+                </div>
+
+                <RecordCategoriesButtonGroup
+                  pathTemplate={slugPath(
+                    slug,
+                    `/rankings/${eventId}/${type}?${
+                      urlSearchParamsWithoutCategory.toString() ? `${urlSearchParamsWithoutCategory}&` : ""
+                    }category=__CATEGORY__`,
+                  )}
+                  selectedCategory={recordCategory}
+                  recordCategories={enabledRecordCategories}
+                  allCategoriesOption
+                />
+              </div>
+            </div>
+
+            {(eventCategory.videoBased || event.submissionsAllowed) && (
+              <Link
+                href={slugPath(slug, `/video-based-results/submit?eventId=${eventId}`)}
+                prefetch={false}
+                className="btn btn-success btn-sm"
+              >
+                Submit a result
+              </Link>
+            )}
           </div>
-        </div>
 
-        {(eventCategory.videoBased || event.submissionsAllowed) && (
-          <Link
-            href={slugPath(slug, `/video-based-results/submit?eventId=${eventId}`)}
-            prefetch={false}
-            className="btn btn-success btn-sm"
-          >
-            Submit a result
-          </Link>
-        )}
-      </div>
+          <EventTitle organizationSlug={slug} event={event} showDescription />
 
-      <EventTitle organizationSlug={slug} event={event} showDescription />
+          {(eventCategory.hidden || event.hidden) && <p className="ms-2 text-danger">This is a hidden event</p>}
+        </Suspense>
 
-      {(eventCategory.hidden || event.hidden) && <p className="ms-2 text-danger">This is a hidden event</p>}
-
-      <Suspense fallback={<Loading />}>
-        <RankingsTable rankingsPromise={rankingsPromise} event={event} regions={regions} type={type} show={show} />
-      </Suspense>
+        <Suspense fallback={<Loading />}>
+          <RankingsTable rankingsPromise={rankingsPromise} event={event} type={type} show={show} />
+        </Suspense>
+      </SWRConfig>
     </section>
   );
 }

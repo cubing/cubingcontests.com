@@ -1,6 +1,10 @@
+import { Suspense } from "react";
+import { SWRConfig } from "swr";
 import MemberRequestsScreen from "~/app/[slug]/mod/members/requests/MemberRequestsScreen.tsx";
 import { getTabs } from "~/app/[slug]/mod/members/tabs.ts";
+import Loading from "~/app/components/UI/Loading.tsx";
 import Tabs from "~/app/components/UI/Tabs.tsx";
+import { SwrKey } from "~/helpers/swr-keys.ts";
 import { db } from "~/server/db/provider.ts";
 import { authorizeUser, getRegions } from "~/server/server-only-functions/server-only-functions.ts";
 
@@ -29,7 +33,11 @@ async function MemberRequestsPage({ params }: Props) {
     <>
       <Tabs tabs={getTabs(slug)} activeTab="member-requests" forServerSidePage />
 
-      <MemberRequestsScreen memberRequests={memberRequests} regions={regions} />
+      <SWRConfig value={{ fallback: { [SwrKey.Regions]: regions } }}>
+        <Suspense fallback={<Loading />}>
+          <MemberRequestsScreen memberRequests={memberRequests} />
+        </Suspense>
+      </SWRConfig>
     </>
   );
 }

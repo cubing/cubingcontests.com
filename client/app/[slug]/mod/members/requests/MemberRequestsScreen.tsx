@@ -10,16 +10,14 @@ import Button from "~/app/components/UI/Button.tsx";
 import { MainContext } from "~/helpers/contexts.ts";
 import { getActionError } from "~/helpers/utility-functions.ts";
 import type { FullMemberRequest } from "~/server/db/schema/member-requests";
-import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import { orgRolesObject } from "~/server/organization-permissions.ts";
 import { approveMemberRequestSF, deleteMemberRequestSF } from "~/server/server-functions/user-server-functions.ts";
 
 type Props = {
   memberRequests: FullMemberRequest[];
-  regions: RegionResponse[];
 };
 
-function MemberRequestsScreen({ memberRequests: initMemberRequests, regions }: Props) {
+function MemberRequestsScreen({ memberRequests: initMemberRequests }: Props) {
   const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
 
   const { executeAsync: approveMemberRequest, isPending: isApproving } = useAction(approveMemberRequestSF);
@@ -86,7 +84,7 @@ function MemberRequestsScreen({ memberRequests: initMemberRequests, regions }: P
                   <td>
                     {mr.requestedPerson && (
                       <div className="d-flex gap-3 align-items-center">
-                        <Competitor person={mr.requestedPerson} regions={regions} showWcaId />
+                        <Competitor person={mr.requestedPerson} showWcaId />
                         <ActiveInactiveIcon isActive={mr.requestedPerson.approved} />
                       </div>
                     )}

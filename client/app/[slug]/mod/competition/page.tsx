@@ -1,6 +1,10 @@
 import { and, eq, inArray, sql } from "drizzle-orm";
+import { Suspense } from "react";
+import { SWRConfig } from "swr";
 import z from "zod";
+import Loading from "~/app/components/UI/Loading.tsx";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
+import { SwrKey } from "~/helpers/swr-keys.ts";
 import type { ContestType, Creator } from "~/helpers/types.ts";
 import { getMemberControlsContest } from "~/helpers/utility-functions.ts";
 import { auth } from "~/server/auth.ts";
@@ -33,12 +37,13 @@ async function CreateEditContestPage({ searchParams }: Props) {
     orgPermissions: { competitions: ["create", "update"], meetups: ["create", "update"] },
   });
 
-  const [{ success: canApprove }, regions] = await Promise.all([
+  const [{ success: canApprove }, regions, spaceType] = await Promise.all([
     auth.api.hasPermission({
       headers: httpHeaders,
       body: { permissions: { competitions: ["approve"], meetups: ["approve"] } },
     }),
     getRegions(organization!.id),
+    getSettingFromDb({ key: "space-type", organizationId: organization!.id }),
   ]);
 
   const mode = editId ? "edit" : copyId ? "copy" : "new";
@@ -126,17 +131,27 @@ async function CreateEditContestPage({ searchParams }: Props) {
       <section>
         <h2 className="mb-4 text-center">{mode === "edit" ? "Edit Contest" : "Create Contest"}</h2>
 
-        <ContestForm
-          events={events}
-          rounds={rounds}
-          totalResultsByRound={totalResultsByRound}
-          regions={regions}
-          contestTypes={contestTypes.split(",") as ContestType[]}
-          mode={mode}
-          contest={contest}
-          organizers={organizers}
-          creator={creator}
-        />
+        <SWRConfig
+          value={{
+            fallback: {
+              [SwrKey.SpaceType]: spaceType,
+              [SwrKey.Regions]: regions,
+            },
+          }}
+        >
+          <Suspense fallback={<Loading />}>
+            <ContestForm
+              events={events}
+              rounds={rounds}
+              totalResultsByRound={totalResultsByRound}
+              contestTypes={contestTypes.split(",") as ContestType[]}
+              mode={mode}
+              contest={contest}
+              organizers={organizers}
+              creator={creator}
+            />
+          </Suspense>
+        </SWRConfig>
       </section>
     );
   } catch (err) {

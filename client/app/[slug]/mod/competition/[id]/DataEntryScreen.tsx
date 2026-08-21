@@ -40,7 +40,6 @@ import type { EventCategoryResponse } from "~/server/db/schema/event-categories.
 import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
 import type { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
-import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import type { Attempt, ResultResponse } from "~/server/db/schema/results.ts";
 import type { RoundResponse } from "~/server/db/schema/rounds.ts";
 import { openRoundSF } from "~/server/server-functions/contest-server-functions.ts";
@@ -61,7 +60,6 @@ type Props = {
   results: ResultResponse[];
   persons: PersonResponse[];
   recordConfigs: RecordConfigResponse[];
-  regions: RegionResponse[];
   memberPerson: PersonResponse | undefined;
 };
 
@@ -74,7 +72,6 @@ function DataEntryScreen({
   results: initResults,
   persons: initPersons,
   recordConfigs,
-  regions,
   memberPerson,
 }: Props) {
   const pathname = usePathname();
@@ -332,7 +329,6 @@ function DataEntryScreen({
             onSelectPerson={onSelectPerson}
             persons={selectedPersons}
             setPersons={setSelectedPersons}
-            regions={regions}
             nextFocusTargetId="attempt_1"
             addNewPersonMode="default"
             redirectToOnAddPerson={`${pathname}?eventId=${eventId}`}
@@ -410,7 +406,6 @@ function DataEntryScreen({
             results={sortedResults}
             persons={persons}
             recordConfigs={recordConfigs}
-            regions={regions}
             onEditResult={round.open && canCreateAndUpdateContests ? onEditResult : undefined}
             onDeleteResult={round.open && canCreateAndUpdateContests ? onDeleteResult : undefined}
             loadingId={loadingId}

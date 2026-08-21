@@ -1,5 +1,9 @@
 import { inArray } from "drizzle-orm";
+import { Suspense } from "react";
 import Markdown from "react-markdown";
+import { SWRConfig } from "swr";
+import Loading from "~/app/components/UI/Loading.tsx";
+import { SwrKey } from "~/helpers/swr-keys.ts";
 import { db } from "~/server/db/provider.ts";
 import { personsTable } from "~/server/db/schema/persons.ts";
 import type { FullResult } from "~/server/db/schema/results.ts";
@@ -18,17 +22,19 @@ async function ManageResultsPage() {
     orgPermissions: { videoBasedResults: ["update", "approve", "delete"] },
   });
 
-  const [results, events, recordConfigs, regions, videoBasedResultsEnabled, instructions] = await Promise.all([
-    db.query.results.findMany({
-      where: { organizationId: organization!.id, competitionId: { isNull: true } },
-      orderBy: { createdAt: "desc" },
-    }),
-    getEvents({ organizationId: organization!.id, includeHiddenAndRemoved: true }),
-    getRecordConfigs(organization!.id, { recordCategory: "online" }),
-    getRegions(organization!.id),
-    getSettingFromDb({ key: "video-based-results-enabled", organizationId: organization!.id }),
-    getSettingFromDb({ key: "video-based-results-instructions", organizationId: organization!.id }),
-  ]);
+  const [results, events, recordConfigs, regions, spaceType, videoBasedResultsEnabled, instructions] =
+    await Promise.all([
+      db.query.results.findMany({
+        where: { organizationId: organization!.id, competitionId: { isNull: true } },
+        orderBy: { createdAt: "desc" },
+      }),
+      getEvents({ organizationId: organization!.id, includeHiddenAndRemoved: true }),
+      getRecordConfigs(organization!.id, { recordCategory: "online" }),
+      getRegions(organization!.id),
+      getSettingFromDb({ key: "space-type", organizationId: organization!.id }),
+      getSettingFromDb({ key: "video-based-results-enabled", organizationId: organization!.id }),
+      getSettingFromDb({ key: "video-based-results-instructions", organizationId: organization!.id }),
+    ]);
 
   if (videoBasedResultsEnabled !== "true")
     return <p className="fs-4 mx-3 mt-5 text-center">Video-based results are disabled</p>;
@@ -53,12 +59,18 @@ async function ManageResultsPage() {
         </div>
       </div>
 
-      <ManageResultsScreen
-        results={results as FullResult[]}
-        events={events}
-        recordConfigs={recordConfigs}
-        regions={regions}
-      />
+      <SWRConfig
+        value={{
+          fallback: {
+            [SwrKey.SpaceType]: spaceType,
+            [SwrKey.Regions]: regions,
+          },
+        }}
+      >
+        <Suspense fallback={<Loading />}>
+          <ManageResultsScreen results={results as FullResult[]} events={events} recordConfigs={recordConfigs} />
+        </Suspense>
+      </SWRConfig>
     </section>
   );
 }

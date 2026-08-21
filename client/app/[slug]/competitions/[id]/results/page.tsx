@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { SWRConfig } from "swr";
 import ContestLayout from "~/app/[slug]/competitions/[id]/ContestLayout.tsx";
 import EventButtons from "~/app/components/EventButtons.tsx";
 import EventResultsTable from "~/app/components/EventResultsTable.tsx";
+import Loading from "~/app/components/UI/Loading.tsx";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
+import { SwrKey } from "~/helpers/swr-keys.ts";
 import { db } from "~/server/db/provider.ts";
 import { getContest } from "~/server/server-only-functions/contests-functions.ts";
 import { getEventCategories, getOrgDetails } from "~/server/server-only-functions/server-only-functions.ts";
@@ -52,14 +56,17 @@ async function ContestResultsPage({ params, searchParams }: Props) {
       <div className="px-1">
         <EventButtons events={events} eventCategories={eventCategories} eventIdOverride={event.eventId} showAllEvents />
       </div>
-      <EventResultsTable
-        event={event}
-        rounds={rounds}
-        results={results}
-        persons={persons}
-        recordConfigs={recordConfigs}
-        regions={regions}
-      />
+      <SWRConfig value={{ fallback: { [SwrKey.Regions]: regions } }}>
+        <Suspense fallback={<Loading />}>
+          <EventResultsTable
+            event={event}
+            rounds={rounds}
+            results={results}
+            persons={persons}
+            recordConfigs={recordConfigs}
+          />
+        </Suspense>
+      </SWRConfig>
     </ContestLayout>
   );
 }

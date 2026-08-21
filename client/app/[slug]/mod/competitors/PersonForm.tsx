@@ -15,7 +15,6 @@ import type { Creator } from "~/helpers/types.ts";
 import { getActionError } from "~/helpers/utility-functions.ts";
 import type { PersonDto } from "~/helpers/validators/Person.ts";
 import type { PersonResponse, SelectPerson } from "~/server/db/schema/persons.ts";
-import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import {
   createPersonSF,
   getOrCreatePersonByWcaIdSF,
@@ -25,14 +24,13 @@ import {
 type Props = {
   personUnderEdit: PersonResponse | undefined; // undefined means we're creating a new person
   creator?: Creator | null; // null means the user has been deleted
-  regions: RegionResponse[];
   onSubmit: (person: SelectPerson, { isNew }: { isNew: boolean }) => void;
   onSubmitError?: () => void;
   onCancel?: () => void;
   wcaIdInputHidden?: boolean;
 };
 
-function PersonForm({ personUnderEdit, creator, regions, onSubmit, onSubmitError, onCancel, wcaIdInputHidden }: Props) {
+function PersonForm({ personUnderEdit, creator, onSubmit, onSubmitError, onCancel, wcaIdInputHidden }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
@@ -161,7 +159,6 @@ function PersonForm({ personUnderEdit, creator, regions, onSubmit, onSubmitError
       {personUnderEdit && creator !== undefined && (
         <CreatorDetails
           creator={creator}
-          regions={regions}
           createdExternally={(personUnderEdit as any).createdExternally}
           className="mb-3"
         />
@@ -204,12 +201,7 @@ function PersonForm({ personUnderEdit, creator, regions, onSubmit, onSubmitError
         disabled={isPending || hasWcaId}
         className="mb-3"
       />
-      <FormRegionSelect
-        regionCode={regionCode}
-        setRegionCode={setRegionCode}
-        regions={regions}
-        disabled={isPending || hasWcaId}
-      />
+      <FormRegionSelect regionCode={regionCode} setRegionCode={setRegionCode} disabled={isPending || hasWcaId} />
     </Form>
   );
 }

@@ -10,16 +10,14 @@ import ModFilters from "~/app/[slug]/mod/ModFilters.tsx";
 import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
 import Region from "~/app/components/Region.tsx";
 import { getFormattedDate, slugPath } from "~/helpers/utility-functions.ts";
-import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import { getModContestsSF } from "~/server/server-functions/contest-server-functions.ts";
 import ContestControls from "./ContestControls.tsx";
 
 type Props = {
-  regions: RegionResponse[];
   isAdminView: boolean;
 };
 
-function ModDashboardScreen({ regions, isAdminView }: Props) {
+function ModDashboardScreen({ isAdminView }: Props) {
   const { slug }: { slug: string } = useParams();
   const [filters] = useModDashboardQueryState();
   const { data, isLoading, isValidating, mutate } = useSWR(["mod", filters], () => getModContestsSF(filters));
@@ -30,12 +28,7 @@ function ModDashboardScreen({ regions, isAdminView }: Props) {
   return (
     <>
       <div className="px-2">
-        <ModFilters
-          initOrganizerPerson={data?.data?.organizerPerson}
-          regions={regions}
-          isAdminView={isAdminView}
-          disabled={isPending}
-        />
+        <ModFilters initOrganizerPerson={data?.data?.organizerPerson} isAdminView={isAdminView} disabled={isPending} />
         {!isAdminView && !filters.state && contests?.every((c) => c.state === "created") && (
           <p className="fw-bold my-3 text-danger">
             Your contests will not be publicly visible and you will not be able to enter results until an admin approves
@@ -86,7 +79,7 @@ function ModDashboardScreen({ regions, isAdminView }: Props) {
                           {contest.city}
                         </span>
                         <span className="me-1">,</span>
-                        <Region regionCode={contest.regionCode} regions={regions} swapPositions shorten />
+                        <Region regionCode={contest.regionCode} swapPositions shorten />
                       </div>
                     )}
                   </td>

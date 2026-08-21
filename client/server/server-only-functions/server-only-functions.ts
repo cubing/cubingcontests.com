@@ -662,6 +662,10 @@ export async function getOrCreatePersonByWcaId(
     organization: Pick<OrganizationDetails, "id" | "subscription">;
   },
 ): Promise<GetOrCreatePersonObject> {
+  const spaceType = await getSettingFromDb({ key: "space-type", organizationId: organization.id });
+  if (spaceType !== "speedcubing")
+    throw new RrActionError("Persons can only be added by WCA ID on spaces with the type Speedcubing");
+
   const [person] = await db
     .select(personsPublicCols)
     .from(personsTable)

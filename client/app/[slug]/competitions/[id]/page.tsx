@@ -1,15 +1,19 @@
 import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 import { and, eq, inArray } from "drizzle-orm";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Markdown from "react-markdown";
+import { SWRConfig } from "swr";
 import ContestLayout from "~/app/[slug]/competitions/[id]/ContestLayout.tsx";
 import ContestControls from "~/app/[slug]/mod/ContestControls.tsx";
 import Competitor from "~/app/components/Competitor.tsx";
 import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
 import Region from "~/app/components/Region.tsx";
+import Loading from "~/app/components/UI/Loading.tsx";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import WcaCompAdditionalDetails from "~/app/components/WcaCompAdditionalDetails.tsx";
+import { SwrKey } from "~/helpers/swr-keys.ts";
 import { getDateOnly, getFormattedDate } from "~/helpers/utility-functions.ts";
 import { db } from "~/server/db/provider.ts";
 import { contestsPublicCols, contestsTable as table } from "~/server/db/schema/contests.ts";
@@ -87,84 +91,88 @@ async function ContestDetailsPage({ params }: Props) {
 
   return (
     <ContestLayout organizationSlug={slug} contest={contest} activeTab="details">
-      <div className="row fs-5 mx-0 w-100">
-        <div className="col-md-5 px-0">
-          <div className="px-2">
-            <div className="mb-3">
-              <ContestTypeBadge type={contest.type} />
-            </div>
-            <p className="mb-2">Date:&#8194;{formattedDate}</p>
-            {formattedTime && <p className="mb-2">Starts at:&#8194;{formattedTime}</p>}
-            {contest.type !== "online" && (
-              <p className="mb-2">
-                City:&#8194;{contest.city}, <Region regionCode={contest.regionCode} regions={regions} swapPositions />
-              </p>
-            )}
-            {contest.venue && <p className="mb-2">Venue:&#8194;{contest.venue}</p>}
-            {contest.address && <p className="mb-2">Address:&#8194;{contest.address}</p>}
-            {contest.type !== "online" && <p className="mb-2">Coordinates:&#8194;{getFormattedCoords()}</p>}
-            {contest.contact && (
-              <p className="mb-2">
-                Contact:&#8194;<span className="fs-6">{contest.contact}</span>
-              </p>
-            )}
-            <p className="mb-2">
-              {organizers.length > 1 ? "Organizers" : "Organizer"}:&#8194;
-              {organizers.map((org, index) => (
-                <span key={org.id} className="d-flex-inline">
-                  {index !== 0 && <span className="me-1">,</span>}
-                  <Competitor person={org} regions={regions} noFlag />
-                </span>
-              ))}
-            </p>
-            {contest.participants > 0 ? (
-              <p className="mb-2">
-                Number of participants:&#8194;<b>{contest.participants}</b>
-              </p>
-            ) : (
-              contest.competitorLimit && (
-                <p className="mb-2">
-                  Competitor limit:&#8194;<b>{contest.competitorLimit}</b>
-                </p>
-              )
-            )}
-          </div>
-        </div>
-
-        <hr className="d-md-none mt-2 mb-3" />
-
-        <div className="col-md-7 px-0">
-          <div className="px-2">
-            <div className="mb-3">
-              <ToastMessages />
-              <ContestControls contest={contest} forPage="contest-details" />
-            </div>
-
-            {contest.state === "created" ? (
-              <p className="mb-4">This contest is currently awaiting approval</p>
-            ) : isOngoing ? (
-              <p className="mb-4">This contest is currently ongoing</p>
-            ) : contest.state === "finished" ? (
-              <p className="mb-4">The results for this contest are currently being checked</p>
-            ) : contest.state === "removed" ? (
-              <p className="mb-4 text-danger">THIS CONTEST HAS BEEN REMOVED!</p>
-            ) : undefined}
-
-            {contest.type === "wca-comp" && (
-              <WcaCompAdditionalDetails name={contest.name} competitionId={contest.competitionId} />
-            )}
-
-            {contest.description && (
-              <>
-                <p className="fw-bold">Description:</p>
-                <div style={{ overflowX: "auto" }}>
-                  <Markdown>{contest.description}</Markdown>
+      <SWRConfig value={{ fallback: { [SwrKey.Regions]: regions } }}>
+        <Suspense fallback={<Loading />}>
+          <div className="row fs-5 mx-0 w-100">
+            <div className="col-md-5 px-0">
+              <div className="px-2">
+                <div className="mb-3">
+                  <ContestTypeBadge type={contest.type} />
                 </div>
-              </>
-            )}
+                <p className="mb-2">Date:&#8194;{formattedDate}</p>
+                {formattedTime && <p className="mb-2">Starts at:&#8194;{formattedTime}</p>}
+                {contest.type !== "online" && (
+                  <p className="mb-2">
+                    City:&#8194;{contest.city}, <Region regionCode={contest.regionCode} swapPositions />
+                  </p>
+                )}
+                {contest.venue && <p className="mb-2">Venue:&#8194;{contest.venue}</p>}
+                {contest.address && <p className="mb-2">Address:&#8194;{contest.address}</p>}
+                {contest.type !== "online" && <p className="mb-2">Coordinates:&#8194;{getFormattedCoords()}</p>}
+                {contest.contact && (
+                  <p className="mb-2">
+                    Contact:&#8194;<span className="fs-6">{contest.contact}</span>
+                  </p>
+                )}
+                <p className="mb-2">
+                  {organizers.length > 1 ? "Organizers" : "Organizer"}:&#8194;
+                  {organizers.map((org, index) => (
+                    <span key={org.id} className="d-flex-inline">
+                      {index !== 0 && <span className="me-1">,</span>}
+                      <Competitor person={org} noFlag />
+                    </span>
+                  ))}
+                </p>
+                {contest.participants > 0 ? (
+                  <p className="mb-2">
+                    Number of participants:&#8194;<b>{contest.participants}</b>
+                  </p>
+                ) : (
+                  contest.competitorLimit && (
+                    <p className="mb-2">
+                      Competitor limit:&#8194;<b>{contest.competitorLimit}</b>
+                    </p>
+                  )
+                )}
+              </div>
+            </div>
+
+            <hr className="d-md-none mt-2 mb-3" />
+
+            <div className="col-md-7 px-0">
+              <div className="px-2">
+                <div className="mb-3">
+                  <ToastMessages />
+                  <ContestControls contest={contest} forPage="contest-details" />
+                </div>
+
+                {contest.state === "created" ? (
+                  <p className="mb-4">This contest is currently awaiting approval</p>
+                ) : isOngoing ? (
+                  <p className="mb-4">This contest is currently ongoing</p>
+                ) : contest.state === "finished" ? (
+                  <p className="mb-4">The results for this contest are currently being checked</p>
+                ) : contest.state === "removed" ? (
+                  <p className="mb-4 text-danger">THIS CONTEST HAS BEEN REMOVED!</p>
+                ) : undefined}
+
+                {contest.type === "wca-comp" && (
+                  <WcaCompAdditionalDetails name={contest.name} competitionId={contest.competitionId} />
+                )}
+
+                {contest.description && (
+                  <>
+                    <p className="fw-bold">Description:</p>
+                    <div style={{ overflowX: "auto" }}>
+                      <Markdown>{contest.description}</Markdown>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </Suspense>
+      </SWRConfig>
     </ContestLayout>
   );
 }

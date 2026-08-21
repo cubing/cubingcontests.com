@@ -1,6 +1,9 @@
+import { Suspense } from "react";
+import { SWRConfig } from "swr";
 import ManagePersonsScreen from "~/app/[slug]/mod/competitors/ManagePersonsScreen.tsx";
+import Loading from "~/app/components/UI/Loading.tsx";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
-import type { SpaceType } from "~/helpers/types.ts";
+import { SwrKey } from "~/helpers/swr-keys.ts";
 import { auth } from "~/server/auth.ts";
 import type { SelectPerson } from "~/server/db/schema/persons.ts";
 import { getPersonProfilesSF } from "~/server/server-functions/person-server-functions.ts";
@@ -42,7 +45,18 @@ async function CompetitorsPage() {
     <section>
       <h2 className="mb-4 text-center">Manage Persons</h2>
 
-      <ManagePersonsScreen persons={persons} regions={regions} creators={creators} spaceType={spaceType as SpaceType} />
+      <SWRConfig
+        value={{
+          fallback: {
+            [SwrKey.SpaceType]: spaceType,
+            [SwrKey.Regions]: regions,
+          },
+        }}
+      >
+        <Suspense fallback={<Loading />}>
+          <ManagePersonsScreen persons={persons} creators={creators} />
+        </Suspense>
+      </SWRConfig>
     </section>
   );
 }

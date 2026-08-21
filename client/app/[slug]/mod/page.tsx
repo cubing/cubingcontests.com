@@ -1,10 +1,14 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import { SWRConfig } from "swr";
 import type { ModDashboardFiltersDto } from "~/app/[slug]/mod/ModDashboardFilters.ts";
 import DocsButton from "~/app/components/content/DocsButton.tsx";
 import DonateButton from "~/app/components/content/DonateButton.tsx";
 import SocialLinkButton from "~/app/components/content/SocialLinkButton.tsx";
+import Loading from "~/app/components/UI/Loading.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import { C, IS_RR_INSTANCE } from "~/helpers/constants.ts";
+import { SwrKey } from "~/helpers/swr-keys.ts";
 import { getHasRole, slugPath } from "~/helpers/utility-functions.ts";
 import { auth } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
@@ -38,6 +42,7 @@ async function ModeratorDashboardPage({ params }: Props) {
     maxMonthlyContestsReached,
     isEventsListEmpty,
     isContestsListEmpty,
+    spaceType,
     discordServerLink,
     scorecardsServiceLink,
     scorecardsLinkEnabled,
@@ -54,6 +59,7 @@ async function ModeratorDashboardPage({ params }: Props) {
     db.query.contests
       .findFirst({ columns: { id: true }, where: { organizationId: organization!.id } })
       .then((res) => !res),
+    getSettingFromDb({ key: "space-type", organizationId: organization!.id }),
     getSettingFromDb({ key: "discord-server-link", organizationId: organization!.id, optional: true }),
     getSettingFromDb({ key: "scorecards-service-link", organizationId: null, optional: true }),
     getSettingFromDb({ key: "scorecards-link-enabled", organizationId: organization!.id, optional: true }),
@@ -134,7 +140,18 @@ async function ModeratorDashboardPage({ params }: Props) {
         </div>
       </div>
 
-      <ModDashboardScreen regions={regions} isAdminView={isAdminView} />
+      <SWRConfig
+        value={{
+          fallback: {
+            [SwrKey.SpaceType]: spaceType,
+            [SwrKey.Regions]: regions,
+          },
+        }}
+      >
+        <Suspense fallback={<Loading />}>
+          <ModDashboardScreen isAdminView={isAdminView} />
+        </Suspense>
+      </SWRConfig>
     </section>
   );
 }

@@ -4,14 +4,15 @@ import debounce from "lodash/debounce";
 import { useParams, useRouter } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
 import { useCallback, useContext, useState } from "react";
+import useSWR from "swr";
 import Competitor from "~/app/components/Competitor.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import { C, IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
-import type { InputPerson } from "~/helpers/types.ts";
+import { SwrKey } from "~/helpers/swr-keys.ts";
+import type { InputPerson, SpaceType } from "~/helpers/types.ts";
 import { getActionError, slugPath } from "~/helpers/utility-functions.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
-import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import {
   getOrCreatePersonByWcaIdSF,
   getPersonByIdSF,
@@ -31,7 +32,6 @@ type Props = {
   personNames: string[];
   setPersonNames: (val: string[]) => void;
   onSelectPerson?: (val: PersonResponse) => void;
-  regions: RegionResponse[];
   addNewPersonMode: "default" | "from-new-tab" | "disabled"; // must be disabled for unauthorized users
   display: "default" | "grid" | "one-line";
   infiniteInputs?: boolean;
@@ -48,7 +48,6 @@ function FormPersonInputs({
   personNames,
   setPersonNames,
   onSelectPerson,
-  regions,
   addNewPersonMode,
   display,
   infiniteInputs = false,
@@ -67,6 +66,7 @@ function FormPersonInputs({
   const { executeAsync: getPersonsByName, isPending: isPendingPersonsByName } = useAction(getPersonsByNameSF);
   const { executeAsync: getPersonById, isPending: isPendingPersonById } = useAction(getPersonByIdSF);
   const { executeAsync: getOrCreateWcaPerson, isPending: isPendingWcaPerson } = useAction(getOrCreatePersonByWcaIdSF);
+  const { data: spaceType }: { data: SpaceType } = useSWR(SwrKey.SpaceType, { suspense: true });
   const [matchedPersons, setMatchedPersons] = useState<(PersonResponse | null)[]>(defaultMatchedPersons);
   const [matchSelection, setMatchSelection] = useState(0);
   const [focusedInput, setFocusedInput] = useState<number | null>(null);
@@ -81,7 +81,7 @@ function FormPersonInputs({
 
         if (res.serverError || res.validationErrors) changeErrorMessages([getActionError(res)]);
         else setMatchedPersons([res.data!]);
-      } else if (C.wcaIdRegexLoose.test(value)) {
+      } else if (spaceType === "speedcubing" && C.wcaIdRegexLoose.test(value)) {
         const res = await getOrCreateWcaPerson({ wcaId: value.trim().toUpperCase() });
 
         if (res.serverError || res.validationErrors) changeErrorMessages([getActionError(res)]);
@@ -250,7 +250,7 @@ function FormPersonInputs({
                       onMouseDown={() => selectPerson(inputIndex, matchIndex)}
                     >
                       {person !== null ? (
-                        <Competitor person={person} regions={regions} showWcaId showLocalizedName noLink />
+                        <Competitor person={person} showWcaId showLocalizedName noLink />
                       ) : (
                         "(add new person)"
                       )}

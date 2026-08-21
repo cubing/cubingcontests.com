@@ -12,17 +12,15 @@ import type { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
 import type { InputPerson } from "~/helpers/types.ts";
 import { getActionError } from "~/helpers/utility-functions.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
-import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import { getPersonByIdSF } from "~/server/server-functions/person-server-functions.ts";
 
 type Props = {
   initOrganizerPerson: PersonResponse | undefined;
-  regions: RegionResponse[];
   isAdminView: boolean;
   disabled: boolean;
 };
 
-function ModFilters({ initOrganizerPerson, regions, isAdminView, disabled }: Props) {
+function ModFilters({ initOrganizerPerson, isAdminView, disabled }: Props) {
   const { changeErrorMessages } = useContext(MainContext);
 
   const { executeAsync: getPersonById, isPending: isGettingPerson } = useAction(getPersonByIdSF);
@@ -68,7 +66,6 @@ function ModFilters({ initOrganizerPerson, regions, isAdminView, disabled }: Pro
         personNames={personNames}
         setPersonNames={setPersonNames}
         onSelectPerson={(val) => selectPerson(val.id)}
-        regions={regions}
         disabled={disabled || isGettingPerson}
         addNewPersonMode="disabled"
         display="one-line"

@@ -7,10 +7,8 @@ import { useParams } from "next/navigation";
 import { use } from "react";
 import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
 import Region from "~/app/components/Region.tsx";
-import { contestTypeOptions } from "~/helpers/multipleChoiceOptions.ts";
 import { getFormattedDate, slugPath } from "~/helpers/utility-functions.ts";
 import type { ContestResponse } from "~/server/db/schema/contests.ts";
-import type { RegionResponse } from "~/server/db/schema/regions.ts";
 
 type Props = {
   contestsPromise: Promise<
@@ -19,10 +17,9 @@ type Props = {
       "competitionId" | "shortName" | "type" | "city" | "regionCode" | "startDate" | "endDate" | "participants"
     >[]
   >;
-  regions: RegionResponse[];
 };
 
-function ContestsTable({ contestsPromise, regions }: Props) {
+function ContestsTable({ contestsPromise }: Props) {
   const contests = use(contestsPromise);
   const { slug }: { slug: string } = useParams();
 
@@ -59,7 +56,7 @@ function ContestsTable({ contestsPromise, regions }: Props) {
               <div className="d-flex justify-content-between gap-3">
                 <div className="ms-2">
                   <span>
-                    {contest.city}, <Region regionCode={contest.regionCode} regions={regions} swapPositions shorten />
+                    {contest.city}, <Region regionCode={contest.regionCode} swapPositions shorten />
                   </span>
                 </div>
                 <div className="flex-shrink-0 text-end">
@@ -108,7 +105,7 @@ function ContestsTable({ contestsPromise, regions }: Props) {
                 <td>
                   {contest.type !== "online" && (
                     <>
-                      {contest.city}, <Region regionCode={contest.regionCode} regions={regions} swapPositions />
+                      {contest.city}, <Region regionCode={contest.regionCode} swapPositions />
                     </>
                   )}
                 </td>

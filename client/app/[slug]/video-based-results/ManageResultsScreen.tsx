@@ -18,17 +18,15 @@ import type { InputPerson } from "~/helpers/types.ts";
 import { getFormattedDate, shortenEventName, slugPath } from "~/helpers/utility-functions.ts";
 import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import type { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
-import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import type { FullResult } from "~/server/db/schema/results.ts";
 
 type Props = {
   results: FullResult[];
   events: EventResponseWithCategory[];
   recordConfigs: RecordConfigResponse[];
-  regions: RegionResponse[];
 };
 
-function ManageResultsScreen({ results, events, recordConfigs, regions }: Props) {
+function ManageResultsScreen({ results, events, recordConfigs }: Props) {
   const { slug }: { slug: string } = useParams();
 
   const parentRef = useRef<Element>(null);
@@ -78,7 +76,6 @@ function ManageResultsScreen({ results, events, recordConfigs, regions }: Props)
             setPersons={setPersons}
             personNames={personNames}
             setPersonNames={setPersonNames}
-            regions={regions}
             disabled={results.length === 0}
             addNewPersonMode="disabled"
             display="one-line"
@@ -123,7 +120,7 @@ function ManageResultsScreen({ results, events, recordConfigs, regions }: Props)
                     <td>{shortenEventName(event.name)}</td>
                     <td>
                       {result.persons.length > 0 ? (
-                        <Competitors persons={result.persons} regions={regions} vertical />
+                        <Competitors persons={result.persons} vertical />
                       ) : (
                         "COMPETITOR(S) NOT FOUND"
                       )}

@@ -29,7 +29,6 @@ import type { Creator, ListPageMode, SpaceType } from "~/helpers/types.ts";
 import { clientGetHasPermission, getActionError } from "~/helpers/utility-functions.ts";
 import type { ContestResponse } from "~/server/db/schema/contests.ts";
 import type { SelectPerson } from "~/server/db/schema/persons.ts";
-import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import {
   approvePersonSF,
   deletePersonSF,
@@ -44,19 +43,18 @@ const approvedFilterOptions: MultiChoiceOption[] = [
 ];
 
 type Props = {
-  regions: RegionResponse[];
-  spaceType: SpaceType;
   persons: SelectPerson[];
   creators: Creator[];
 };
 
-function ManagePersonsScreen({ regions, spaceType, persons: initPersons, creators }: Props) {
+function ManagePersonsScreen({ persons: initPersons, creators }: Props) {
   const searchParams = useSearchParams();
   const { user, session } = useSession();
   const { changeSuccessMessage, changeErrorMessages, resetMessages } = useContext(MainContext);
 
   const { executeAsync: deletePerson, isPending: isDeleting } = useAction(deletePersonSF);
   const { executeAsync: approvePerson, isPending: isApproving } = useAction(approvePersonSF);
+  const { data: spaceType }: { data: SpaceType } = useSWR(SwrKey.SpaceType, { suspense: true });
   const { data: canApprovePersons } = useSWR(
     session?.activeOrganizationId ? [SwrKey.CanApprovePersons, session] : null,
     () => clientGetHasPermission({ persons: ["approve"] }),
@@ -220,7 +218,6 @@ function ManagePersonsScreen({ regions, spaceType, persons: initPersons, creator
         <PersonForm
           personUnderEdit={personUnderEdit}
           creator={creator}
-          regions={regions}
           onSubmit={updateCompetitors}
           onCancel={mode !== "add-once" ? cancel : undefined}
           wcaIdInputHidden={spaceType !== "speedcubing"}
@@ -238,7 +235,7 @@ function ManagePersonsScreen({ regions, spaceType, persons: initPersons, creator
                 tooltip="Search by name, localized name, ID, or by the name or username of the creator."
                 oneLine
               />
-              <FormRegionSelect regionCode={region} setRegionCode={setRegion} regions={regions} noTitle />
+              <FormRegionSelect regionCode={region} setRegionCode={setRegion} noTitle />
               <FormSelect
                 title="Status"
                 options={approvedFilterOptions}
@@ -251,7 +248,6 @@ function ManagePersonsScreen({ regions, spaceType, persons: initPersons, creator
                 contestName={contestName}
                 setContestName={setContestName}
                 setContest={setContest}
-                regions={regions}
                 tooltip="Filter for persons who have either competed in or organized the competition"
               />
               {(searchInput || approvedFilter || region !== C.notSelectedOption || !!contest) && (
@@ -300,17 +296,16 @@ function ManagePersonsScreen({ regions, spaceType, persons: initPersons, creator
                         >
                           <td>{person.id}</td>
                           <td>
-                            <Competitor person={person} regions={regions} noFlag />
+                            <Competitor person={person} noFlag />
                           </td>
                           <td>{person.localizedName}</td>
                           {spaceType === "speedcubing" && <td>{person.wcaId}</td>}
                           <td>
-                            <Region regionCode={person.regionCode} regions={regions} shorten />
+                            <Region regionCode={person.regionCode} shorten />
                           </td>
                           <td>
                             <CreatorDetails
                               creator={personCreator}
-                              regions={regions}
                               createdExternally={!!person.createdExternally}
                               isCurrentUser={person.createdBy === user?.id}
                               small

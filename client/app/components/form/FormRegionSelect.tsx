@@ -1,13 +1,14 @@
 "use client";
 
+import useSWR from "swr";
 import FormInputLabel from "~/app/components/form/FormInputLabel.tsx";
 import { C } from "~/helpers/constants.ts";
-import type { SelectRegion } from "~/server/db/schema/regions.ts";
+import { SwrKey } from "~/helpers/swr-keys.ts";
+import type { RegionResponse } from "~/server/db/schema/regions.ts";
 
 type Props = {
   regionCode: string | typeof C.notSelectedOption;
   setRegionCode: (value: string | typeof C.notSelectedOption) => void;
-  regions: Pick<SelectRegion, "code" | "name" | "shortName" | "type">[];
   nextFocusTargetId?: string;
   noTitle?: boolean;
   continentOptions?: boolean;
@@ -17,12 +18,13 @@ type Props = {
 function FormRegionSelect({
   regionCode,
   setRegionCode,
-  regions,
   nextFocusTargetId,
   noTitle = false,
   continentOptions = false,
   disabled = false,
 }: Props) {
+  const { data: regions }: { data: RegionResponse[] } = useSWR(SwrKey.Regions, { suspense: true });
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLSelectElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -32,7 +34,7 @@ function FormRegionSelect({
 
   return (
     <div>
-      {!noTitle && <FormInputLabel text="Region" inputId="region_code" />} 
+      {!noTitle && <FormInputLabel text="Region" inputId="region_code" />}
 
       <select
         id="region_code"

@@ -1,12 +1,17 @@
+import { Suspense } from "react";
+import { SWRConfig } from "swr";
 import z from "zod";
 import ResultsSubmissionForm from "~/app/[slug]/video-based-results/ResultsSubmissionForm.tsx";
+import Loading from "~/app/components/UI/Loading.tsx";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
+import { SwrKey } from "~/helpers/swr-keys.ts";
 import { db } from "~/server/db/provider.ts";
 import {
   authorizeUser,
   getCreators,
   getRecordConfigs,
   getRegions,
+  getSettingFromDb,
   getVideoBasedEvents,
 } from "~/server/server-only-functions/server-only-functions.ts";
 
@@ -26,10 +31,11 @@ async function UpdateVideoBasedResultPage({ params }: Props) {
     orgPermissions: { videoBasedResults: ["update", "approve", "delete"] },
   });
 
-  const [events, recordConfigs, regions, result] = await Promise.all([
+  const [events, recordConfigs, regions, spaceType, result] = await Promise.all([
     getVideoBasedEvents(organization!.id),
     getRecordConfigs(organization!.id, { recordCategory: "online" }),
     getRegions(organization!.id),
+    getSettingFromDb({ key: "space-type", organizationId: organization!.id }),
     db.query.results.findFirst({ where: { organizationId: organization!.id, id: resultId } }),
   ]);
 
@@ -46,17 +52,27 @@ async function UpdateVideoBasedResultPage({ params }: Props) {
     <section>
       <h2 className="text-center">Edit Result</h2>
 
-      <ResultsSubmissionForm
-        videoBasedResultsRules={null}
-        videoBasedResultsContactEmail={null}
-        events={events}
-        recordConfigs={recordConfigs}
-        regions={regions}
-        result={result}
-        participants={participants}
-        creator={creator}
-        isVideoBasedResultReviewer // already checked on page load above
-      />
+      <SWRConfig
+        value={{
+          fallback: {
+            [SwrKey.SpaceType]: spaceType,
+            [SwrKey.Regions]: regions,
+          },
+        }}
+      >
+        <Suspense fallback={<Loading />}>
+          <ResultsSubmissionForm
+            videoBasedResultsRules={null}
+            videoBasedResultsContactEmail={null}
+            events={events}
+            recordConfigs={recordConfigs}
+            result={result}
+            participants={participants}
+            creator={creator}
+            isVideoBasedResultReviewer // already checked on page load above
+          />
+        </Suspense>
+      </SWRConfig>
     </section>
   );
 }

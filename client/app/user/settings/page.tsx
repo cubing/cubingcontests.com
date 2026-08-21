@@ -4,7 +4,6 @@ import { SWRConfig } from "swr";
 import Loading from "~/app/components/UI/Loading.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import { SwrKey } from "~/helpers/swr-keys.ts";
-import type { SpaceType } from "~/helpers/types.ts";
 import { db } from "~/server/db/provider.ts";
 import { personsPublicCols, personsTable } from "~/server/db/schema/persons.ts";
 import {
@@ -35,6 +34,8 @@ async function UserSettingsPage() {
       <SWRConfig
         value={{
           fallback: {
+            [SwrKey.SpaceType]: spaceType,
+            [SwrKey.Regions]: regions,
             [SwrKey.MemberRequestDetails]: member ? getMemberRequestDetails({ member }) : undefined,
             [SwrKey.MemberRequestInstructions]: member
               ? getSettingFromDb({ key: "member-request-instructions", organizationId: member.organizationId })
@@ -43,7 +44,7 @@ async function UserSettingsPage() {
         }}
       >
         <Suspense fallback={<Loading />}>
-          <UserSettingsScreen initPerson={person} regions={regions} spaceType={spaceType as SpaceType | undefined} />
+          <UserSettingsScreen initPerson={person} />
         </Suspense>
       </SWRConfig>
     </section>

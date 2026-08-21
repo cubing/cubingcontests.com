@@ -26,6 +26,7 @@ import {
   getMemberRequestDetails,
   getOrCreatePersonByWcaId,
   getRecordConfigsSet,
+  getSettingFromDb,
   logMessage,
 } from "~/server/server-only-functions/server-only-functions.ts";
 
@@ -152,12 +153,14 @@ export const removeMemberSF = actionClient
 export const linkWcaProfileSF = actionClient
   .metadata({ auth: { useOrganization: true } })
   .action<PersonResponse>(async ({ ctx: { session, httpHeaders } }) => {
+    const spaceType = await getSettingFromDb({ key: "space-type", organizationId: session.organization!.id });
+    if (spaceType !== "speedcubing")
+      throw new RrActionError("You can only link your WCA profile on spaces with the type Speedcubing");
     const wcaAccount = await db.query.accounts.findFirst({
       columns: { accountId: true },
       where: { userId: session.user.id, providerId: "wca" },
     });
     if (!wcaAccount) throw new RrActionError("Only users using WCA login can link their own WCA competitor profiles");
-    if (!session.organization) throw new RrActionError("Please activate a space first");
 
     const res = await auth.api.accountInfo({ query: { accountId: wcaAccount.accountId }, headers: httpHeaders });
     if (!res) throw new RrActionError("Unable to retrieve account information from the WCA");
@@ -193,7 +196,7 @@ export const linkWcaProfileSF = actionClient
       person = (
         await getOrCreatePersonByWcaId(wcaId, {
           creatorUserId: session.user.id,
-          organization: session.organization,
+          organization: session.organization!,
         })
       ).person;
     }

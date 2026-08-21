@@ -4,6 +4,7 @@ import { faCopy, faPencil } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useAction } from "next-safe-action/hooks";
 import { useContext, useState } from "react";
+import useSWR from "swr";
 import GenerateRecordConfigsForm from "~/app/[slug]/mod/records-configuration/GenerateRecordConfigsForm";
 import Form from "~/app/components/form/Form.tsx";
 import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
@@ -17,11 +18,12 @@ import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import { C } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { recordCategoryOptions } from "~/helpers/multipleChoiceOptions.ts";
+import { SwrKey } from "~/helpers/swr-keys.ts";
 import { type ListPageMode, type RecordCategory, RecordCategoryValues } from "~/helpers/types.ts";
 import { getActionError } from "~/helpers/utility-functions.ts";
 import type { RecordConfigDto } from "~/helpers/validators/RecordConfig.ts";
 import type { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
-import type { SelectRegion } from "~/server/db/schema/regions.ts";
+import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import {
   createRecordConfigSF,
   generateRecordConfigsSF,
@@ -41,15 +43,15 @@ const RecordTypeLabels = {
 
 type Props = {
   recordConfigs: RecordConfigResponse[];
-  regions: Pick<SelectRegion, "type" | "superRegionRecordType">[];
 };
 
-function ConfigureRecordsScreen({ recordConfigs: initRecordConfigs, regions }: Props) {
+function ConfigureRecordsScreen({ recordConfigs: initRecordConfigs }: Props) {
   const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
 
   const { executeAsync: createRecordConfig, isPending: isCreating } = useAction(createRecordConfigSF);
   const { executeAsync: updateRecordConfig, isPending: isUpdating } = useAction(updateRecordConfigSF);
   const { executeAsync: generateRecordConfigs, isPending: isGenerating } = useAction(generateRecordConfigsSF);
+  const { data: regions }: { data: RegionResponse[] } = useSWR(SwrKey.Regions, { suspense: true });
   const [mode, setMode] = useState<ListPageMode | "generate">("view");
   const [recordConfigs, setRecordConfigs] = useState(initRecordConfigs);
 

@@ -10,7 +10,6 @@ import { getIsProceedableResult } from "~/helpers/utility-functions.ts";
 import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
 import type { RecordConfigResponse } from "~/server/db/schema/record-configs.ts";
-import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import type { ResultResponse } from "~/server/db/schema/results.ts";
 import type { RoundResponse } from "~/server/db/schema/rounds.ts";
 
@@ -20,7 +19,6 @@ type Props = {
   results: ResultResponse[];
   persons: PersonResponse[];
   recordConfigs: RecordConfigResponse[];
-  regions: RegionResponse[];
 } & (
   | {
       onEditResult?: never;
@@ -42,7 +40,6 @@ function RoundResultsTable({
   results,
   persons,
   recordConfigs,
-  regions,
   // If one of these is defined, the other must be defined too
   onEditResult,
   onDeleteResult,
@@ -99,7 +96,7 @@ function RoundResultsTable({
                       if (!person) return <span key={personId}>(name not found)</span>;
                       return (
                         <span key={person.id} className="d-flex gap-2">
-                          <Competitor person={person} regions={regions} showLocalizedName />
+                          <Competitor person={person} showLocalizedName />
                           {i !== result.personIds.length - 1 && <span>&</span>}
                         </span>
                       );

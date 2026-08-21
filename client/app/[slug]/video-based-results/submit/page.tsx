@@ -1,4 +1,8 @@
+import { Suspense } from "react";
+import { SWRConfig } from "swr";
 import ResultsSubmissionForm from "~/app/[slug]/video-based-results/ResultsSubmissionForm.tsx";
+import Loading from "~/app/components/UI/Loading.tsx";
+import { SwrKey } from "~/helpers/swr-keys.ts";
 import { auth } from "~/server/auth.ts";
 import {
   authorizeUser,
@@ -21,6 +25,7 @@ async function SubmitResultsPage() {
     events,
     recordConfigs,
     regions,
+    spaceType,
     { success: isVideoBasedResultReviewer },
   ] = await Promise.all([
     getSettingFromDb({ key: "video-based-results-enabled", organizationId: organization!.id }),
@@ -29,6 +34,7 @@ async function SubmitResultsPage() {
     getVideoBasedEvents(organization!.id),
     getRecordConfigs(organization!.id, { recordCategory: "online" }),
     getRegions(organization!.id),
+    getSettingFromDb({ key: "space-type", organizationId: organization!.id }),
     auth.api.hasPermission({
       headers: httpHeaders,
       body: { permissions: { videoBasedResults: ["update", "approve", "delete"] } },
@@ -42,14 +48,24 @@ async function SubmitResultsPage() {
     <section>
       <h2 className="text-center">Submit Results</h2>
 
-      <ResultsSubmissionForm
-        videoBasedResultsRules={videoBasedResultsRules}
-        videoBasedResultsContactEmail={videoBasedResultsContactEmail}
-        events={events}
-        recordConfigs={recordConfigs}
-        regions={regions}
-        isVideoBasedResultReviewer={isVideoBasedResultReviewer}
-      />
+      <SWRConfig
+        value={{
+          fallback: {
+            [SwrKey.SpaceType]: spaceType,
+            [SwrKey.Regions]: regions,
+          },
+        }}
+      >
+        <Suspense fallback={<Loading />}>
+          <ResultsSubmissionForm
+            videoBasedResultsRules={videoBasedResultsRules}
+            videoBasedResultsContactEmail={videoBasedResultsContactEmail}
+            events={events}
+            recordConfigs={recordConfigs}
+            isVideoBasedResultReviewer={isVideoBasedResultReviewer}
+          />
+        </Suspense>
+      </SWRConfig>
     </section>
   );
 }

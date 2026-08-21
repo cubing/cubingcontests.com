@@ -1,24 +1,15 @@
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
-import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import Region from "./Region.tsx";
 
 type Props = {
   person: Pick<PersonResponse, "name" | "localizedName" | "regionCode" | "wcaId"> | undefined;
-  regions: RegionResponse[];
   showWcaId?: boolean;
   showLocalizedName?: boolean; // showWcaId overrides this
   noFlag?: boolean;
   noLink?: boolean;
 };
 
-function Competitor({
-  person,
-  regions,
-  showWcaId = false,
-  showLocalizedName = false,
-  noFlag = false,
-  noLink = false,
-}: Props) {
+function Competitor({ person, showWcaId = false, showLocalizedName = false, noFlag = false, noLink = false }: Props) {
   if (!person) return <span className="text-danger">Not found</span>;
 
   let displayText = person.name;
@@ -35,7 +26,7 @@ function Competitor({
         </a>
       )}
 
-      {!noFlag && <Region regionCode={person.regionCode} regions={regions} noText />}
+      {!noFlag && <Region regionCode={person.regionCode} noText />}
     </span>
   );
 }

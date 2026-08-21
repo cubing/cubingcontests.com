@@ -43,7 +43,6 @@ import { WcaCompetitionValidator } from "~/helpers/validators/wca/WcaCompetition
 import type { SelectContest } from "~/server/db/schema/contests.ts";
 import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
-import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import type { RoundResponse } from "~/server/db/schema/rounds.ts";
 import {
   createContestSF,
@@ -67,7 +66,6 @@ type Props = {
   events: EventResponseWithCategory[];
   rounds: RoundResponse[] | undefined;
   totalResultsByRound: { roundId: number; totalResults: number }[] | undefined;
-  regions: RegionResponse[];
   contestTypes: ContestType[];
   mode: "new" | "edit" | "copy";
   contest: SelectContest | undefined;
@@ -79,7 +77,6 @@ function ContestForm({
   events,
   rounds: initRounds = [],
   totalResultsByRound,
-  regions,
   contestTypes,
   mode,
   contest,
@@ -500,7 +497,7 @@ function ContestForm({
       isLoading={isCreating || isUpdating}
       disableControls={isPending || disabled || disabledIfContestPublished || disabledIfNotUnderstood}
     >
-      {mode === "edit" && isAdmin && <CreatorDetails creator={creator ?? null} regions={regions} className="mb-3" />}
+      {mode === "edit" && isAdmin && <CreatorDetails creator={creator ?? null} className="mb-3" />}
 
       <Tabs tabs={tabs} activeTab={activeTab} setActiveTab={changeActiveTab} />
 
@@ -648,7 +645,6 @@ function ContestForm({
                       <FormRegionSelect
                         regionCode={regionCode}
                         setRegionCode={setRegionCode}
-                        regions={regions}
                         disabled={mode === "edit" || disabledIfDetailsImported}
                       />
                     </div>
@@ -749,7 +745,6 @@ function ContestForm({
                   setPersonNames={setOrganizerNames}
                   persons={organizers}
                   setPersons={setOrganizers}
-                  regions={regions}
                   infiniteInputs
                   nextFocusTargetId="contact"
                   disabled={(disabledIfContestApproved && !isAdmin) || disabledIfContestPublished}

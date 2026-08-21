@@ -18,24 +18,19 @@ import type { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
 import type { InputPerson, MemberRequestDetails, SpaceType } from "~/helpers/types.ts";
 import { getActionError, getHasRole } from "~/helpers/utility-functions.ts";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
-import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import { orgRolesObject, requestableRoles } from "~/server/organization-permissions.ts";
 import {
   createOrUpdateMemberRequestSF,
   deleteMemberRequestSF,
 } from "~/server/server-functions/user-server-functions.ts";
 
-type Props = {
-  regions: RegionResponse[];
-  spaceType: SpaceType | undefined;
-};
-
-function MemberRequestTab({ regions, spaceType }: Props) {
+function MemberRequestTab() {
   const { member } = useSession();
   const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
 
   const { executeAsync: createOrUpdateMemberRequest, isPending: isCreating } = useAction(createOrUpdateMemberRequestSF);
   const { executeAsync: deleteMemberRequest, isPending: isDeleting } = useAction(deleteMemberRequestSF);
+  const { data: spaceType }: { data: SpaceType } = useSWR(SwrKey.SpaceType, { suspense: true });
   const { data: memberRequestDetails, mutate } = useSWR<MemberRequestDetails>(SwrKey.MemberRequestDetails, {
     suspense: true,
   });
@@ -129,7 +124,6 @@ function MemberRequestTab({ regions, spaceType }: Props) {
               setPersons={setPersons}
               personNames={personNames}
               setPersonNames={setPersonNames}
-              regions={regions}
               disabled={isPending || !!memberRequest?.requestedPersonId || !!member!.personId}
               addNewPersonMode="disabled"
               display="grid"
@@ -190,7 +184,6 @@ function MemberRequestTab({ regions, spaceType }: Props) {
         <PersonForm
           key={persons[0]?.id}
           personUnderEdit={persons[0] ?? undefined}
-          regions={regions}
           onSubmit={onSubmitPerson}
           onSubmitError={() => dialogRef.current!.close()}
           wcaIdInputHidden

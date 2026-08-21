@@ -13,11 +13,9 @@ import Region from "~/app/components/Region.tsx";
 import type { Ranking } from "~/helpers/types/Rankings.ts";
 import { getAlwaysShowDecimals, getFormattedDate, getFormattedResult, slugPath } from "~/helpers/utility-functions.ts";
 import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
-import type { RegionResponse } from "~/server/db/schema/regions.ts";
 
 type Props = {
   event: Pick<EventResponseWithCategory, "name" | "format" | "category">;
-  regions: RegionResponse[];
   type: "single" | "average";
   ranking: Ranking;
   isTiedRanking: boolean;
@@ -31,7 +29,6 @@ function RankingRow({
   ranking,
   isTiedRanking,
   event,
-  regions,
   showAllTeammates = false,
   showTeamColumn = false,
   showDetailsColumn = false,
@@ -56,19 +53,19 @@ function RankingRow({
         <span className={isTiedRanking ? "text-secondary" : ""}>{ranking.ranking}</span>
       </td>
       <td>
-        <Competitors persons={personsToDisplay} regions={regions} noFlag={!showAllTeammates} />
+        <Competitors persons={personsToDisplay} noFlag={!showAllTeammates} />
       </td>
       <td>{result}</td>
       {!showAllTeammates && (
         <td>
-          <Region regionCode={personsToDisplay[0].regionCode} regions={regions} shorten />
+          <Region regionCode={personsToDisplay[0].regionCode} shorten />
         </td>
       )}
       <td>{getFormattedDate(ranking.date)}</td>
       <td>
         {ranking.contest ? (
           <span className="d-flex gap-2 align-items-center">
-            <Region regionCode={ranking.contest.regionCode} regions={regions} noText />
+            <Region regionCode={ranking.contest.regionCode} noText />
 
             <Link href={slugPath(slug, `/competitions/${ranking.contest.competitionId}`)} prefetch={false}>
               {ranking.contest.shortName}
@@ -93,7 +90,7 @@ function RankingRow({
               </button>
             </span>
 
-            {expanded && ranking.persons.map((p) => <Competitor key={p.id} person={p} regions={regions} />)}
+            {expanded && ranking.persons.map((p) => <Competitor key={p.id} person={p} />)}
           </div>
         </td>
       )}

@@ -1,13 +1,21 @@
 import { eq } from "drizzle-orm";
+import { Suspense } from "react";
+import { SWRConfig } from "swr";
 import DataEntryScreen from "~/app/[slug]/mod/competition/[id]/DataEntryScreen.tsx";
+import Loading from "~/app/components/UI/Loading.tsx";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
+import { SwrKey } from "~/helpers/swr-keys.ts";
 import { getMemberControlsContest } from "~/helpers/utility-functions.ts";
 import { auth } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
 import { type PersonResponse, personsPublicCols, personsTable } from "~/server/db/schema/persons.ts";
 import { getContest } from "~/server/server-only-functions/contests-functions.ts";
-import { authorizeUser, getEventCategories } from "~/server/server-only-functions/server-only-functions.ts";
+import {
+  authorizeUser,
+  getEventCategories,
+  getSettingFromDb,
+} from "~/server/server-only-functions/server-only-functions.ts";
 
 type Props = {
   params: Promise<{ slug: string; id: string }>;
@@ -19,9 +27,10 @@ async function DataEntryPage({ params, searchParams }: Props) {
   const { eventId } = await searchParams;
   const { member, organization, httpHeaders } = await authorizeUser({ useOrganization: true });
 
-  const [contestData, eventCategories] = await Promise.all([
+  const [contestData, eventCategories, spaceType] = await Promise.all([
     getContest({ organizationId: organization!.id, competitionId: id, eventId }),
     getEventCategories({ organizationId: organization!.id }),
+    getSettingFromDb({ key: "space-type", organizationId: organization!.id }),
   ]);
   if (!contestData) return <LoadingError loadingEntity="contest results" />;
 
@@ -65,19 +74,29 @@ async function DataEntryPage({ params, searchParams }: Props) {
     <section>
       <ToastMessages className="mx-2" />
 
-      <DataEntryScreen
-        key={eventIdOrFirst}
-        contest={contest}
-        eventId={eventIdOrFirst}
-        events={events}
-        eventCategories={eventCategories}
-        rounds={rounds}
-        results={results}
-        persons={memberPerson ? [...persons, memberPerson] : persons}
-        recordConfigs={recordConfigs}
-        regions={regions}
-        memberPerson={memberPerson}
-      />
+      <SWRConfig
+        value={{
+          fallback: {
+            [SwrKey.SpaceType]: spaceType,
+            [SwrKey.Regions]: regions,
+          },
+        }}
+      >
+        <Suspense fallback={<Loading />}>
+          <DataEntryScreen
+            key={eventIdOrFirst}
+            contest={contest}
+            eventId={eventIdOrFirst}
+            events={events}
+            eventCategories={eventCategories}
+            rounds={rounds}
+            results={results}
+            persons={memberPerson ? [...persons, memberPerson] : persons}
+            recordConfigs={recordConfigs}
+            memberPerson={memberPerson}
+          />
+        </Suspense>
+      </SWRConfig>
     </section>
   );
 }
