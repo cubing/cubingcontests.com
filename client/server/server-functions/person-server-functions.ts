@@ -10,12 +10,14 @@ import { RegionCodeValidator, WcaIdValidator } from "~/helpers/validators/Valida
 import { auth } from "~/server/auth.ts";
 import { db } from "~/server/db/provider.ts";
 import { usersTable } from "~/server/db/schema/auth-schema.ts";
+import { contestsTable } from "~/server/db/schema/contests.ts";
 import {
   type PersonResponse,
   personsPublicCols,
   type SelectPerson,
   personsTable as table,
 } from "~/server/db/schema/persons.ts";
+import { resultsTable } from "~/server/db/schema/results.ts";
 import { actionClient, RrActionError } from "~/server/safe-action.ts";
 import {
   getOrCreatePersonByWcaId,
@@ -52,6 +54,7 @@ export const getPersonsByNameSF = actionClient
   .action<PersonResponse[]>(async ({ parsedInput: { name }, ctx: { session } }) => {
     const simplifiedParts = getSimplifiedString(name)
       .split(" ")
+      .filter((part) => part !== "")
       .map((part) => `%${part}%`);
     const nameQuery = and(...simplifiedParts.map((part) => ilike(sql`UNACCENT(${table.name})`, part)));
     const locNameQuery = and(...simplifiedParts.map((part) => ilike(table.localizedName, part)));
@@ -60,7 +63,7 @@ export const getPersonsByNameSF = actionClient
       .select(personsPublicCols)
       .from(table)
       .where(and(eq(table.organizationId, session.organization!.id), or(nameQuery, locNameQuery)))
-      .limit(C.maxPersonMatches);
+      .limit(C.maxSearchMatches);
   });
 
 export const getPersonProfilesSF = actionClient
@@ -70,57 +73,90 @@ export const getPersonProfilesSF = actionClient
       search: z.string().max(100).default(""),
       approved: z.enum(["approved", "unapproved"]).optional(),
       regionCode: RegionCodeValidator.optional(),
+      competitionId: z.string().optional(),
     }),
   )
-  .action<SelectPerson[]>(async ({ parsedInput: { search, approved, regionCode }, ctx: { session } }) => {
-    const queryFilters: any[] = [eq(table.organizationId, session.organization!.id)];
+  .action<SelectPerson[]>(
+    async ({ parsedInput: { search, approved, regionCode, competitionId }, ctx: { session } }) => {
+      const queryFilters: any[] = [eq(table.organizationId, session.organization!.id)];
 
-    if (approved === "approved") queryFilters.push(eq(table.approved, true));
-    else if (approved === "unapproved") queryFilters.push(eq(table.approved, false));
+      if (approved === "approved") queryFilters.push(eq(table.approved, true));
+      else if (approved === "unapproved") queryFilters.push(eq(table.approved, false));
 
-    if (regionCode) queryFilters.push(eq(table.regionCode, regionCode));
+      if (regionCode) queryFilters.push(eq(table.regionCode, regionCode));
 
-    const simplifiedSearch = getSimplifiedString(search);
-    if (simplifiedSearch) {
-      const searchId = Number(simplifiedSearch);
+      if (competitionId) {
+        const participantQuery = inArray(
+          table.id,
+          db
+            .select({ id: sql`UNNEST(${resultsTable.personIds})` })
+            .from(resultsTable)
+            .where(
+              and(
+                eq(resultsTable.organizationId, session.organization!.id),
+                eq(resultsTable.competitionId, competitionId),
+              ),
+            ),
+        );
 
-      if (Number.isNaN(searchId)) {
-        const searchConditions: any[] = [];
+        const organizerQuery = inArray(
+          table.id,
+          db
+            .select({ id: sql`UNNEST(${contestsTable.organizerIds})` })
+            .from(contestsTable)
+            .where(
+              and(
+                eq(contestsTable.organizationId, session.organization!.id),
+                eq(contestsTable.competitionId, competitionId),
+              ),
+            ),
+        );
 
-        searchConditions.push(ilike(sql`UNACCENT(${table.name})`, `%${simplifiedSearch}%`));
-        searchConditions.push(ilike(table.localizedName, `%${simplifiedSearch}%`));
-        searchConditions.push(eq(sql`LOWER(${table.wcaId})`, simplifiedSearch));
+        queryFilters.push(or(participantQuery, organizerQuery));
+      }
 
-        // Search by the name of the creator of the person
-        searchConditions.push(
-          inArray(
+      const simplifiedSearch = getSimplifiedString(search);
+      if (simplifiedSearch) {
+        const searchId = Number(simplifiedSearch);
+
+        if (Number.isNaN(searchId)) {
+          const simplifiedParts = simplifiedSearch
+            .split(" ")
+            .filter((part) => part !== "")
+            .map((part) => `%${part}%`);
+          const nameQuery = and(...simplifiedParts.map((part) => ilike(sql`UNACCENT(${table.name})`, part)));
+          const locNameQuery = and(...simplifiedParts.map((part) => ilike(table.localizedName, part)));
+          const wcaIdQuery = eq(sql`LOWER(${table.wcaId})`, simplifiedSearch);
+
+          // Search by the name of the creator of the person
+          const creatorQuery = inArray(
             table.createdBy,
             db
               .select({ id: usersTable.id })
               .from(usersTable)
               .where(
                 or(
-                  ilike(sql`UNACCENT(${usersTable.name})`, `%${simplifiedSearch}%`),
-                  ilike(sql`UNACCENT(${usersTable.username})`, `%${simplifiedSearch}%`),
+                  and(...simplifiedParts.map((part) => ilike(sql`UNACCENT(${usersTable.name})`, part))),
+                  and(...simplifiedParts.map((part) => ilike(sql`UNACCENT(${usersTable.username})`, part))),
                 ),
               ),
-          ),
-        );
+          );
 
-        queryFilters.push(or(...searchConditions));
-      } else {
-        queryFilters.push(eq(table.id, searchId));
+          queryFilters.push(or(nameQuery, locNameQuery, wcaIdQuery, creatorQuery));
+        } else {
+          queryFilters.push(eq(table.id, searchId));
+        }
       }
-    }
 
-    const persons = await db
-      .select()
-      .from(table)
-      .where(and(...queryFilters))
-      .orderBy(desc(table.id));
+      const persons = await db
+        .select()
+        .from(table)
+        .where(and(...queryFilters))
+        .orderBy(desc(table.id));
 
-    return persons;
-  });
+      return persons;
+    },
+  );
 
 export const getOrCreatePersonSF = actionClient
   .metadata({ auth: { useOrganization: true, orgPermissions: { persons: ["create"] } } })

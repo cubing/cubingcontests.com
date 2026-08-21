@@ -33,7 +33,7 @@ type Props = {
   onSelectPerson?: (val: PersonResponse) => void;
   regions: RegionResponse[];
   addNewPersonMode: "default" | "from-new-tab" | "disabled"; // must be disabled for unauthorized users
-  display: "basic" | "grid" | "one-line";
+  display: "default" | "grid" | "one-line";
   infiniteInputs?: boolean;
   nextFocusTargetId?: string;
   disabled?: boolean;
@@ -68,7 +68,7 @@ function FormPersonInputs({
   const { executeAsync: getPersonById, isPending: isPendingPersonById } = useAction(getPersonByIdSF);
   const { executeAsync: getOrCreateWcaPerson, isPending: isPendingWcaPerson } = useAction(getOrCreatePersonByWcaIdSF);
   const [matchedPersons, setMatchedPersons] = useState<(PersonResponse | null)[]>(defaultMatchedPersons);
-  const [personSelection, setPersonSelection] = useState(0);
+  const [matchSelection, setMatchSelection] = useState(0);
   const [focusedInput, setFocusedInput] = useState<number | null>(null);
 
   const getMatchedPersons = useCallback(
@@ -94,18 +94,17 @@ function FormPersonInputs({
         } else if (res.data!.length > 0) {
           const newMatchedPersons = [...res.data!, ...defaultMatchedPersons];
           setMatchedPersons(newMatchedPersons);
-          if (newMatchedPersons.length < personSelection) setPersonSelection(0);
         }
       }
     }, C.fetchDebounceTimeout),
-    [personSelection],
+    [matchSelection],
   );
 
   const isPending = isPendingPersonsByName || isPendingPersonById || isPendingWcaPerson;
 
   const queryMatchedPersons = (value: string) => {
     setMatchedPersons(defaultMatchedPersons);
-    setPersonSelection(0);
+    setMatchSelection(0);
 
     value = value.trim();
     if (value) getMatchedPersons(value);
@@ -115,7 +114,7 @@ function FormPersonInputs({
   // This is called first on focus leave for the previous input and then on focus for the new input
   const changeFocusedInput = (inputIndex: number | null, inputValue = "") => {
     setFocusedInput(inputIndex);
-    setPersonSelection(0);
+    setMatchSelection(0);
     queryMatchedPersons(inputValue);
   };
 
@@ -132,8 +131,7 @@ function FormPersonInputs({
   };
 
   const changePersonName = (index: number, value: string) => {
-    if (value) setFocusedInput(index);
-    else setFocusedInput(null);
+    setFocusedInput(value ? index : null);
 
     // Update person name and reset the person object for that organizer
     const newPersonNames = personNames.map((name, i) => (i === index ? value : name));
@@ -157,7 +155,7 @@ function FormPersonInputs({
   const focusNext = (newPersons: InputPerson[]) => {
     setFocusedInput(null);
     setMatchedPersons(defaultMatchedPersons);
-    setPersonSelection(0);
+    setMatchSelection(0);
 
     // Focus on the first attempt input, if all names have been entered, or the next person input,
     // if all names haven't been entered and the last person input is not currently focused
@@ -198,20 +196,17 @@ function FormPersonInputs({
   const onPersonKeyDown = (inputIndex: number, e: any) => {
     if (e.key === "Enter") {
       // Make sure the focused input is not empty
-      if (personNames[inputIndex]) selectPerson(inputIndex, personSelection);
+      if (personNames[inputIndex]) selectPerson(inputIndex, matchSelection);
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
 
-      if (personSelection + 1 <= matchedPersons.length - 1) setPersonSelection(personSelection + 1);
-      else setPersonSelection(0);
+      if (matchSelection + 1 <= matchedPersons.length - 1) setMatchSelection(matchSelection + 1);
+      else setMatchSelection(0);
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
 
-      if (personSelection - 1 >= 0) setPersonSelection(personSelection - 1);
-      else setPersonSelection(matchedPersons.length - 1);
-    } // Disallow entering certain characters
-    else if (/[()_/\\[\]]/.test(e.key)) {
-      e.preventDefault();
+      if (matchSelection - 1 >= 0) setMatchSelection(matchSelection - 1);
+      else setMatchSelection(matchedPersons.length - 1);
     }
   };
 
@@ -248,10 +243,10 @@ function FormPersonInputs({
                   matchedPersons.map((person: PersonResponse | null, matchIndex: number) => (
                     <li
                       key={matchIndex}
-                      className={`list-group-item ${matchIndex === personSelection ? "active" : ""}`}
+                      className={`list-group-item ${matchIndex === matchSelection ? "active" : ""}`}
                       style={{ cursor: "pointer" }}
-                      aria-current={matchIndex === personSelection}
-                      onMouseEnter={() => setPersonSelection(matchIndex)}
+                      aria-current={matchIndex === matchSelection}
+                      onMouseEnter={() => setMatchSelection(matchIndex)}
                       onMouseDown={() => selectPerson(inputIndex, matchIndex)}
                     >
                       {person !== null ? (

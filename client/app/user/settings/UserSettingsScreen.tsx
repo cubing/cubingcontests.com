@@ -62,6 +62,7 @@ function UserSettingsScreen({ initPerson, regions, spaceType }: Props) {
   ];
   const showLinkWcaProfileButton =
     HAS_WCA_AUTH &&
+    spaceType === "speedcubing" &&
     !["disabled", "linked"].includes(wcaProfileLinkStatus) &&
     accounts!.some((a) => a.providerId === "wca");
   const roles = member

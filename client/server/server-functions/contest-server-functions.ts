@@ -2,7 +2,7 @@
 
 import { endOfDay } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
-import { and, arrayContains, desc, eq, gte, inArray, lt, notInArray, or, sql } from "drizzle-orm";
+import { and, arrayContains, desc, eq, gte, ilike, inArray, lt, notInArray, or, sql } from "drizzle-orm";
 import { find as findTimezone } from "geo-tz";
 import z from "zod";
 import { ModDashboardFiltersValidator } from "~/app/[slug]/mod/ModDashboardFilters.ts";
@@ -15,6 +15,7 @@ import {
   getMemberControlsContest,
   getNameAndLocalizedName,
   getResultProceeds,
+  getSimplifiedString,
 } from "~/helpers/utility-functions.ts";
 import { type ContestDto, ContestValidator } from "~/helpers/validators/Contest.ts";
 import { CoordinatesValidator } from "~/helpers/validators/Coordinates.ts";
@@ -119,6 +120,30 @@ export const getModContestsSF = actionClient
       return { contests, organizerPerson };
     },
   );
+
+export const getContestsByNameSF = actionClient
+  .metadata({ auth: { useOrganization: true } })
+  .inputSchema(
+    z.strictObject({
+      search: z.string().max(100),
+    }),
+  )
+  .action<ContestResponse[]>(async ({ parsedInput: { search }, ctx: { session } }) => {
+    const simplifiedParts = getSimplifiedString(search)
+      .split(" ")
+      .filter((part) => part !== "")
+      .map((part) => `%${part}%`);
+    const nameQuery = and(...simplifiedParts.map((part) => ilike(sql`UNACCENT(${table.name})`, part)));
+    const shortNameQuery = and(...simplifiedParts.map((part) => ilike(sql`UNACCENT(${table.shortName})`, part)));
+    const competitionIdQuery = ilike(table.competitionId, search.trim());
+
+    return await db
+      .select(contestsPublicCols)
+      .from(table)
+      .where(and(eq(table.organizationId, session.organization!.id), or(nameQuery, shortNameQuery, competitionIdQuery)))
+      .orderBy(desc(table.startDate))
+      .limit(C.maxSearchMatches);
+  });
 
 export const getTimeZoneFromCoordsSF = actionClient
   .metadata({ auth: { useOrganization: true, orgPermissions: { competitions: ["create"], meetups: ["create"] } } })

@@ -38,7 +38,7 @@ function PersonForm({ personUnderEdit, creator, regions, onSubmit, onSubmitError
   const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
 
   const { executeAsync: createPerson, isPending: isCreating } = useAction(createPersonSF);
-  const { executeAsync: getOrCreatePersonByWcaId, isPending: isGettingOrCreatingWcaPerson } =
+  const { executeAsync: getOrCreateWcaPerson, isPending: isGettingOrCreatingWcaPerson } =
     useAction(getOrCreatePersonByWcaIdSF);
   const { executeAsync: updatePerson, isPending: isUpdating } = useAction(updatePersonSF);
   const [name, setName] = useState(personUnderEdit?.name ?? "");
@@ -109,7 +109,7 @@ function PersonForm({ personUnderEdit, creator, regions, onSubmit, onSubmitError
         resetMessages();
 
         if (!personUnderEdit) {
-          const res = await getOrCreatePersonByWcaId({ wcaId: newWcaId });
+          const res = await getOrCreateWcaPerson({ wcaId: newWcaId });
 
           if (res.serverError || res.validationErrors) {
             changeErrorMessages([getActionError(res)]);

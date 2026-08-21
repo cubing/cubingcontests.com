@@ -337,7 +337,7 @@ function DataEntryScreen({
             addNewPersonMode="default"
             redirectToOnAddPerson={`${pathname}?eventId=${eventId}`}
             disabled={!round.open || resultUnderEdit !== null || isPending}
-            display="basic"
+            display="default"
             showWcaId
           />
           <div className="tw:mb-1 tw:flex tw:flex-col tw:gap-2">

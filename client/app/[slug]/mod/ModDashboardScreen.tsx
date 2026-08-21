@@ -91,7 +91,7 @@ function ModDashboardScreen({ regions, isAdminView }: Props) {
                     )}
                   </td>
                   <td>
-                    <ContestTypeBadge type={contest.type} short />
+                    <ContestTypeBadge type={contest.type} display="short" />
                   </td>
                   <td>{contest.participants || ""}</td>
                   <td>

@@ -34,52 +34,44 @@ function ContestsTable({ contestsPromise, regions }: Props) {
 
       <div className="d-block d-lg-none border-bottom border-top">
         <ul className="list-group list-group-flush">
-          {contests.map((contest, index) => {
-            const contestType = contestTypeOptions.find((ct) => ct.value === contest.type);
+          {contests.map((contest, index) => (
+            <li
+              key={contest.competitionId}
+              className={`list-group-item ps-2 ${index % 2 === 1 ? "list-group-item-secondary" : ""}`}
+            >
+              <div className="d-flex justify-content-between mb-3 align-items-center">
+                <div className="d-flex gap-2 align-items-center">
+                  <ContestTypeBadge type={contest.type} display="icon" />
 
-            return (
-              <li
-                key={contest.competitionId}
-                className={`list-group-item ps-2 ${index % 2 === 1 ? "list-group-item-secondary" : ""}`}
-              >
-                <div className="d-flex justify-content-between mb-3 align-items-center">
-                  <div className="d-flex gap-2 align-items-center">
-                    <span
-                      className={`d-shrink-0 tw:text-xs ${contest.type === "comp" ? "tw:icon-[tabler--square-filled]" : contest.type === "meetup" ? "tw:icon-[tabler--flare-filled] tw:text-sm!" : contest.type === "online" ? "tw:icon-[tabler--triangle-filled]" : "tw:icon-[tabler--circle-filled]"}`}
-                      style={{ color: contestType?.color }}
-                      title={contestType?.label}
-                    />
-
-                    <Link
-                      href={slugPath(slug, `/competitions/${contest.competitionId}`)}
-                      prefetch={false}
-                      className="link-primary"
-                    >
-                      {contest.shortName}
-                    </Link>
-                  </div>
-
-                  <p className="ms-2 mb-0 text-end">
-                    <b>{getFormattedDate(contest.startDate, contest.endDate)}</b>
-                  </p>
+                  <Link
+                    href={slugPath(slug, `/competitions/${contest.competitionId}`)}
+                    prefetch={false}
+                    className="link-primary"
+                  >
+                    {contest.shortName}
+                  </Link>
                 </div>
-                <div className="d-flex justify-content-between gap-3">
-                  <div className="ms-2">
+
+                <p className="ms-2 mb-0 text-end">
+                  <b>{getFormattedDate(contest.startDate, contest.endDate)}</b>
+                </p>
+              </div>
+              <div className="d-flex justify-content-between gap-3">
+                <div className="ms-2">
+                  <span>
+                    {contest.city}, <Region regionCode={contest.regionCode} regions={regions} swapPositions shorten />
+                  </span>
+                </div>
+                <div className="flex-shrink-0 text-end">
+                  {contest.participants > 0 && (
                     <span>
-                      {contest.city}, <Region regionCode={contest.regionCode} regions={regions} swapPositions shorten />
+                      Participants: <b>{contest.participants}</b>
                     </span>
-                  </div>
-                  <div className="flex-shrink-0 text-end">
-                    {contest.participants > 0 && (
-                      <span>
-                        Participants: <b>{contest.participants}</b>
-                      </span>
-                    )}
-                  </div>
+                  )}
                 </div>
-              </li>
-            );
-          })}
+              </div>
+            </li>
+          ))}
         </ul>
       </div>
 

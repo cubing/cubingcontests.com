@@ -11,6 +11,7 @@ import useSWR from "swr";
 import Competitor from "~/app/components/Competitor.tsx";
 import CreatorDetails from "~/app/components/CreatorDetails.tsx";
 import FiltersContainer from "~/app/components/FiltersContainer.tsx";
+import ContestSelect from "~/app/components/form/ContestSelect.tsx";
 import FormRegionSelect from "~/app/components/form/FormRegionSelect.tsx";
 import FormSelect from "~/app/components/form/FormSelect.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
@@ -26,6 +27,7 @@ import { SwrKey } from "~/helpers/swr-keys.ts";
 import type { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
 import type { Creator, ListPageMode, SpaceType } from "~/helpers/types.ts";
 import { clientGetHasPermission, getActionError } from "~/helpers/utility-functions.ts";
+import type { ContestResponse } from "~/server/db/schema/contests.ts";
 import type { SelectPerson } from "~/server/db/schema/persons.ts";
 import type { RegionResponse } from "~/server/db/schema/regions.ts";
 import {
@@ -48,7 +50,7 @@ type Props = {
   creators: Creator[];
 };
 
-function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, creators }: Props) {
+function ManagePersonsScreen({ regions, spaceType, persons: initPersons, creators }: Props) {
   const searchParams = useSearchParams();
   const { user, session } = useSession();
   const { changeSuccessMessage, changeErrorMessages, resetMessages } = useContext(MainContext);
@@ -63,6 +65,8 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
   const [personUnderEdit, setPersonUnderEdit] = useState<SelectPerson>();
   const [approvedFilter, setApprovedFilter] = useState<"approved" | "unapproved" | "">("");
   const [region, setRegion] = useState<string>(C.notSelectedOption);
+  const [contestName, setContestName] = useState("");
+  const [contest, setContest] = useState<ContestResponse | null>(null);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [loadingId, setLoadingId] = useState("");
@@ -75,12 +79,13 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
     mutate,
     isValidating,
   } = useSWR(
-    ["person-profiles", search, approvedFilter, region],
+    ["person-profiles", search, approvedFilter, region, contest],
     async () => {
       const res = await getPersonProfilesSF({
         search,
         approved: approvedFilter || undefined,
         regionCode: region === C.notSelectedOption ? undefined : region,
+        competitionId: contest?.competitionId,
       });
 
       if (res.serverError || res.validationErrors) {
@@ -111,6 +116,8 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
     setSearch("");
     setApprovedFilter("");
     setRegion(C.notSelectedOption);
+    setContestName("");
+    setContest(null);
     resetMessages();
   };
 
@@ -240,7 +247,14 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
                 oneLine
                 style={{ maxWidth: "15rem" }}
               />
-              {(searchInput || approvedFilter || region !== C.notSelectedOption) && (
+              <ContestSelect
+                contestName={contestName}
+                setContestName={setContestName}
+                setContest={setContest}
+                regions={regions}
+                tooltip="Filter for persons who have either competed in or organized the competition"
+              />
+              {(searchInput || approvedFilter || region !== C.notSelectedOption || !!contest) && (
                 <Button onClick={resetFilters} className="btn-secondary btn-sm">
                   Reset
                 </Button>
@@ -360,4 +374,4 @@ function ManageCompetitorsScreen({ regions, spaceType, persons: initPersons, cre
   );
 }
 
-export default ManageCompetitorsScreen;
+export default ManagePersonsScreen;

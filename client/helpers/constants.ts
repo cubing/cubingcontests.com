@@ -25,7 +25,7 @@ export const C = {
   maxProceedPercentage: 75,
   maxTotalEvents: 30, // this is hardcoded on the rules page
   maxTotalMeetupEvents: 15, // this is hardcoded on the rules page
-  maxPersonMatches: 6,
+  maxSearchMatches: 6,
   maxRankings: 100_000,
   minSlugCharacters: 8,
   maxSlugCharacters: 24,

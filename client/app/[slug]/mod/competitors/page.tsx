@@ -1,4 +1,4 @@
-import ManageCompetitorsScreen from "~/app/[slug]/mod/competitors/ManageCompetitorsScreen.tsx";
+import ManagePersonsScreen from "~/app/[slug]/mod/competitors/ManagePersonsScreen.tsx";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
 import type { SpaceType } from "~/helpers/types.ts";
 import { auth } from "~/server/auth.ts";
@@ -42,12 +42,7 @@ async function CompetitorsPage() {
     <section>
       <h2 className="mb-4 text-center">Manage Persons</h2>
 
-      <ManageCompetitorsScreen
-        persons={persons}
-        regions={regions}
-        creators={creators}
-        spaceType={spaceType as SpaceType}
-      />
+      <ManagePersonsScreen persons={persons} regions={regions} creators={creators} spaceType={spaceType as SpaceType} />
     </section>
   );
 }
