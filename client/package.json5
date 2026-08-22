@@ -33,6 +33,8 @@
     '@supabase/storage-js': '2.112.3',
     '@tailwindcss/postcss': '4.3.3',
     '@tanstack/react-virtual': '3.14.9',
+    '@trustcomponent/trustcaptcha-nodejs': '3.0.0',
+    '@trustcomponent/trustcaptcha-react': '3.0.1',
     'better-auth': '1.6.29',
     bootstrap: '5.3.8',
     'country-flag-icons': '1.6.20',

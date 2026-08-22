@@ -2,23 +2,19 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useContext, useEffect, useState, useTransition } from "react";
-import z from "zod";
-import Form from "~/app/components/form/Form.tsx";
-import FormTextInput from "~/app/components/form/FormTextInput.tsx";
+import Button from "~/app/components/UI/Button.tsx";
+import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import { authClient } from "~/helpers/auth-client.ts";
 import { HAS_CREDENTIAL_AUTH } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
-import { ResetPasswordFormValidator } from "~/helpers/validators/Auth.ts";
 
 function ResetPasswordPage() {
   if (!HAS_CREDENTIAL_AUTH) return <p className="text-center">EMAIL + PASSWORD AUTHENTICATION IS NOT SUPPORTED</p>;
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { changeErrorMessages, changeSuccessMessage } = useContext(MainContext);
+  const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
 
-  const [password, setPassword] = useState("");
-  const [passwordRepeat, setPasswordRepeat] = useState("");
   const [isDisabled, setIsDisabled] = useState(true);
   const [isPending, startTransition] = useTransition();
 
@@ -30,56 +26,76 @@ function ResetPasswordPage() {
     }
   }, [searchParams]);
 
-  const handleSubmit = () => {
-    const parsed = ResetPasswordFormValidator.safeParse({ password, passwordRepeat });
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
 
-    if (!parsed.success) {
-      changeErrorMessages([z.prettifyError(parsed.error)]);
-    } else {
-      startTransition(async () => {
-        const { error } = await authClient.resetPassword({
-          newPassword: password,
-          token: searchParams.get("token")!,
-        });
-
-        if (error) {
-          changeErrorMessages([error.message || error.statusText]);
-        } else {
-          changeSuccessMessage("Your password has been successfully reset");
-          setIsDisabled(true);
-
-          setTimeout(() => router.push("/login"), 2000);
-        }
-      });
+    const password = formData.get("password");
+    const passwordRepeat = formData.get("passwordRepeat");
+    if (password !== passwordRepeat) {
+      changeErrorMessages(["The passwords do not match"]);
+      return;
     }
+
+    startTransition(async () => {
+      resetMessages();
+      const { error } = await authClient.resetPassword({
+        newPassword: password as string,
+        token: searchParams.get("token")!,
+      });
+
+      if (error) {
+        changeErrorMessages([error.message || error.statusText]);
+      } else {
+        changeSuccessMessage("Your password has been successfully reset");
+        setIsDisabled(true);
+
+        setTimeout(() => router.push("/login"), 2000);
+      }
+    });
   };
 
   return (
     <section>
       <h2 className="mx-3 mb-4 text-center">Reset Password</h2>
 
-      <Form onSubmit={handleSubmit} disableControls={isDisabled} isLoading={isPending}>
-        <FormTextInput
-          id="password"
-          title="Password"
-          value={password}
-          setValue={setPassword}
-          nextFocusTargetId="password_repeat"
-          password
-          autoFocus
-          disabled={isPending || isPending}
-          className="mb-2"
-        />
-        <FormTextInput
-          id="password_repeat"
-          title="Repeat password"
-          value={passwordRepeat}
-          setValue={setPasswordRepeat}
-          nextFocusTargetId="form_submit_button"
-          password
-          disabled={isPending || isPending}
-        />
-      </Form>
+      <ToastMessages />
+
+      <form
+        onSubmit={handleSubmit}
+        className="container mx-auto my-4 tw:px-4"
+        style={{ maxWidth: "var(--rr-md-width)" }}
+      >
+        <fieldset className="mb-2">
+          <label htmlFor="password" className="form-label fw-semibold">
+            Password
+          </label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            required
+            disabled={isDisabled || isPending}
+            className="form-control"
+          />
+        </fieldset>
+        <fieldset className="mb-2">
+          <label htmlFor="passwordRepeat" className="form-label fw-semibold">
+            Repeat password
+          </label>
+          <input
+            id="passwordRepeat"
+            name="passwordRepeat"
+            type="password"
+            required
+            disabled={isDisabled || isPending}
+            className="form-control"
+          />
+        </fieldset>
+        <Button type="submit" isLoading={isPending} disabled={isDisabled || isPending} className="mt-3 w-100">
+          Reset password
+        </Button>
+      </form>
     </section>
   );
 }

@@ -3,24 +3,21 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useContext, useEffect, useState, useTransition } from "react";
+import { useContext, useEffect, useRef, useState, useTransition } from "react";
 import { z } from "zod";
 import SignInWithGoogleButton from "~/app/(auth)/login/SignInWithGoogleButton.tsx";
-import Form from "~/app/components/form/Form.tsx";
-import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import Button from "~/app/components/UI/Button.tsx";
+import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import { authClient } from "~/helpers/auth-client.ts";
 import { HAS_CREDENTIAL_AUTH, HAS_GOOGLE_AUTH, HAS_WCA_AUTH } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
-import { LoginFormValidator } from "~/helpers/validators/Auth.ts";
 
 function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { changeErrorMessages, changeSuccessMessage } = useContext(MainContext);
+  const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const usernameInputRef = useRef<HTMLInputElement>(null);
   const [isPendingWcaSignIn, setIsPendingWcaSignIn] = useState(false);
   const [isPendingGoogleSignIn, setIsPendingGoogleSignIn] = useState(false);
   const [isPendingSignIn, startSignInTransition] = useTransition();
@@ -39,30 +36,31 @@ function LoginPage() {
         router.push(`/register/link-expired?email=${parsed.data}`);
       } else {
         changeSuccessMessage("Your email has been verified. You can now log in.");
-        setUsername(email);
+        usernameInputRef.current!.value = parsed.data;
       }
     }
   }, [searchParams]);
 
-  const signIn = () => {
-    const parsed = LoginFormValidator.safeParse({ username, password });
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const username = formData.get("username") as string;
+    const password = formData.get("password") as string;
 
-    if (!parsed.success) {
-      changeErrorMessages([z.prettifyError(parsed.error)]);
-    } else {
-      startSignInTransition(async () => {
-        const isEmailLogin = z.email().safeParse(username).success;
-        const { error } = isEmailLogin
-          ? await authClient.signIn.email({ email: username, password })
-          : await authClient.signIn.username({ username, password });
+    startSignInTransition(async () => {
+      resetMessages();
+      const isEmailLogin = z.email().safeParse(username).success;
+      const { error } = isEmailLogin
+        ? await authClient.signIn.email({ email: username, password })
+        : await authClient.signIn.username({ username, password });
 
-        if (error) changeErrorMessages([error.message || error.statusText]);
-        else router.replace(redirectUrl);
-      });
-    }
+      if (error) changeErrorMessages([error.message || error.statusText]);
+      else router.replace(redirectUrl);
+    });
   };
 
   const signInWithWca = async () => {
+    resetMessages();
     setIsPendingWcaSignIn(true);
     const { error } = await authClient.signIn.oauth2({
       providerId: "wca",
@@ -78,6 +76,7 @@ function LoginPage() {
   };
 
   const signInWithGoogle = async () => {
+    resetMessages();
     setIsPendingGoogleSignIn(true);
     const { error } = await authClient.signIn.social({
       provider: "google",
@@ -95,31 +94,51 @@ function LoginPage() {
       <h2 className="mb-4 text-center">Login</h2>
 
       {HAS_CREDENTIAL_AUTH && (
-        <Form buttonText="Log in" onSubmit={signIn} disableControls={isPending} isLoading={isPendingSignIn}>
-          <FormTextInput
-            id="username"
-            title="Username or email"
-            value={username}
-            setValue={setUsername}
-            nextFocusTargetId="password"
-            disabled={isPending}
-            autoFocus
-            className="mb-3"
-          />
-          <FormTextInput
-            id="password"
-            title="Password"
-            value={password}
-            setValue={setPassword}
-            disabled={isPending}
-            password
-            nextFocusTargetId="form_submit_button"
-            className="mb-3"
-          />
-          <Link href="/forgot-password" className="d-block mt-4">
-            Forgot password?
-          </Link>
-        </Form>
+        <>
+          <ToastMessages />
+
+          <form
+            onSubmit={handleSubmit}
+            className="container mx-auto my-4 tw:px-4"
+            style={{ maxWidth: "var(--rr-md-width)" }}
+          >
+            <fieldset className="mb-3">
+              <label htmlFor="username" className="form-label fw-semibold">
+                Username or email
+              </label>
+              <input
+                ref={usernameInputRef}
+                id="username"
+                name="username"
+                type="text"
+                required
+                // biome-ignore lint/a11y/noAutofocus: meh
+                autoFocus
+                disabled={isPending}
+                className="form-control"
+              />
+            </fieldset>
+            <fieldset className="mb-3">
+              <label htmlFor="password" className="form-label fw-semibold">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                disabled={isPending}
+                className="form-control"
+              />
+            </fieldset>
+            <Link href="/forgot-password" className="d-block mt-4">
+              Forgot password?
+            </Link>
+            <Button type="submit" isLoading={isPendingSignIn} disabled={isPending} className="mt-3 w-100">
+              Log in
+            </Button>
+          </form>
+        </>
       )}
 
       <div className="fs-5 container mx-auto mt-4 px-3" style={{ maxWidth: "var(--rr-md-width)" }}>

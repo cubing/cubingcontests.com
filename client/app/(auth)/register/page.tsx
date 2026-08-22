@@ -4,122 +4,153 @@ import Link from "next/link";
 import { useContext, useState, useTransition } from "react";
 import useSWR from "swr";
 import z from "zod";
-import Form from "~/app/components/form/Form.tsx";
-import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
-import FormTextInput from "~/app/components/form/FormTextInput.tsx";
+import Captcha from "~/app/components/Captcha.tsx";
+import Button from "~/app/components/UI/Button.tsx";
+import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import { authClient } from "~/helpers/auth-client.ts";
 import { HAS_CREDENTIAL_AUTH } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { SwrKey } from "~/helpers/swr-keys.ts";
-import { RegistrationFormValidator } from "~/helpers/validators/Auth.ts";
 import { getPrivacyPolicySF } from "~/server/server-functions/server-functions.ts";
 
 function RegisterPage() {
   if (!HAS_CREDENTIAL_AUTH) return <p className="text-center">EMAIL + PASSWORD AUTHENTICATION IS NOT SUPPORTED</p>;
 
-  const { changeErrorMessages, changeSuccessMessage } = useContext(MainContext);
+  const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
 
   const { data: privacyPolicy, isLoading: isLoadingPrivacyPolicy } = useSWR(SwrKey.PrivacyPolicy, () =>
     getPrivacyPolicySF(),
   );
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [passwordRepeat, setPasswordRepeat] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isPrivacyPolicyUnderstood, setIsPrivacyPolicyUnderstood] = useState(false);
   const [isSubmitting, startTransition] = useTransition();
 
   const isPending = isSubmitting || isLoadingPrivacyPolicy;
 
-  const handleSubmit = () => {
-    const parsed = RegistrationFormValidator.safeParse({
-      username,
-      email,
-      password,
-      passwordRepeat,
-    });
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
 
-    if (!parsed.success) {
-      changeErrorMessages([z.prettifyError(parsed.error)]);
-    } else {
-      startTransition(async () => {
-        const { error } = await authClient.signUp.email({
-          username: parsed.data.username,
-          email: parsed.data.email,
-          password: parsed.data.password,
-          name: parsed.data.username,
-          callbackURL: `/login?email=${parsed.data.email}`, // same as on the link-expired page
-        });
-
-        if (error) {
-          changeErrorMessages([error.message || error.statusText]);
-        } else {
-          changeSuccessMessage(
-            "A verification link has been sent to your email. Please click the link in the email to finish your registration.",
-          );
-          setIsSubmitted(true);
-          await authClient.signOut();
-        }
-      });
+    if (privacyPolicy?.data && formData.get("privacyPolicy") !== "on") {
+      changeErrorMessages(["Please read and accept the Privacy Policy to continue"]);
+      return;
     }
+
+    const username = formData.get("username") as string;
+    const email = formData.get("email") as string;
+    const password = formData.get("password");
+    const passwordRepeat = formData.get("passwordRepeat");
+
+    if (password !== passwordRepeat) {
+      changeErrorMessages(["The passwords do not match"]);
+      return;
+    }
+
+    startTransition(async () => {
+      resetMessages();
+      const { error } = await authClient.signUp.email({
+        username,
+        email,
+        password: password as string,
+        name: username,
+        callbackURL: `/login?email=${email}`, // same as on the link-expired page
+        fetchOptions: {
+          headers: {
+            "x-captcha-verification-token": formData.get("tcVerificationToken"),
+          },
+        },
+      });
+
+      if (error) {
+        changeErrorMessages([error.message || error.statusText]);
+      } else {
+        changeSuccessMessage(
+          "A verification link has been sent to your email. Please click the link in the email to finish your registration.",
+        );
+        setIsSubmitted(true);
+        await authClient.signOut();
+      }
+    });
   };
 
   return (
     <section>
       <h2 className="mb-4 text-center">Register</h2>
 
-      <Form
-        buttonText="Register"
+      <ToastMessages />
+
+      <form
         onSubmit={handleSubmit}
-        isLoading={isSubmitting}
-        disableControls={isSubmitted || isPending || (!!privacyPolicy?.data && !isPrivacyPolicyUnderstood)}
+        className="container mx-auto my-4 tw:px-4"
+        style={{ maxWidth: "var(--rr-md-width)" }}
       >
-        <FormTextInput
-          title="Username"
-          value={username}
-          setValue={setUsername}
-          nextFocusTargetId="email"
-          autoFocus
-          disabled={isSubmitted || isPending}
-          className="mb-2"
-        />
-        <FormTextInput
-          id="email"
-          title="Email"
-          value={email}
-          setValue={setEmail}
-          nextFocusTargetId="password"
-          disabled={isSubmitted || isPending}
-          className="mb-2"
-        />
-        <FormTextInput
-          id="password"
-          title="Password"
-          value={password}
-          setValue={setPassword}
-          nextFocusTargetId="password_repeat"
-          password
-          disabled={isSubmitted || isPending}
-          className="mb-2"
-        />
-        <FormTextInput
-          id="password_repeat"
-          title="Repeat password"
-          value={passwordRepeat}
-          setValue={setPasswordRepeat}
-          nextFocusTargetId="form_submit_button"
-          disabled={isSubmitted || isPending}
-          password
-        />
+        <fieldset className="mb-2">
+          <label htmlFor="username" className="form-label fw-semibold">
+            Username
+          </label>
+          <input
+            id="username"
+            name="username"
+            type="text"
+            required
+            // biome-ignore lint/a11y/noAutofocus: meh
+            autoFocus
+            disabled={isSubmitted || isPending}
+            className="form-control"
+          />
+        </fieldset>
+        <fieldset className="mb-2">
+          <label htmlFor="email" className="form-label fw-semibold">
+            Email
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            disabled={isSubmitted || isPending}
+            className="form-control"
+          />
+        </fieldset>
+        <fieldset className="mb-2">
+          <label htmlFor="password" className="form-label fw-semibold">
+            Password
+          </label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            required
+            disabled={isSubmitted || isPending}
+            className="form-control"
+          />
+        </fieldset>
+        <fieldset className="mb-2">
+          <label htmlFor="passwordRepeat" className="form-label fw-semibold">
+            Repeat password
+          </label>
+          <input
+            id="passwordRepeat"
+            name="passwordRepeat"
+            type="password"
+            required
+            disabled={isSubmitted || isPending}
+            className="form-control"
+          />
+        </fieldset>
         {privacyPolicy?.data && (
           <div className="d-flex column-gap-2 mt-3 flex-wrap">
-            <FormCheckbox
-              title="I have read and accept the"
-              selected={isPrivacyPolicyUnderstood}
-              setSelected={setIsPrivacyPolicyUnderstood}
-              disabled={isSubmitted || isPending}
-            />
+            <div className="form-check">
+              <input
+                id="privacy_policy_checkbox"
+                type="checkbox"
+                name="privacyPolicy"
+                disabled={isSubmitted || isPending}
+                className="form-check-input"
+              />
+              <label className="form-check-label ms-1" htmlFor="privacy_policy_checkbox">
+                I have read and accept the
+              </label>
+            </div>
             {z.url().safeParse(privacyPolicy.data).success ? (
               <a href={privacyPolicy.data} target="_blank" rel="noopener">
                 Privacy Policy
@@ -131,7 +162,11 @@ function RegisterPage() {
             )}
           </div>
         )}
-      </Form>
+        <Captcha />
+        <Button type="submit" isLoading={isSubmitting} disabled={isSubmitted || isPending} className="mt-3 w-100">
+          Register
+        </Button>
+      </form>
 
       <div className="fs-5 container mx-auto my-4 px-3" style={{ maxWidth: "var(--rr-md-width)" }}>
         <Link href="/login" prefetch={false}>

@@ -28,6 +28,7 @@ docker build --build-arg PROJECT_ID="$PROJECT_ID" \
              --build-arg NEXT_PUBLIC_PROJECT_NAME="$NEXT_PUBLIC_PROJECT_NAME" \
              --build-arg NEXT_PUBLIC_AUTH_PROVIDERS="$NEXT_PUBLIC_AUTH_PROVIDERS" \
              --build-arg NEXT_PUBLIC_MULTITENANCY_ENABLED="$NEXT_PUBLIC_MULTITENANCY_ENABLED" \
+             --build-arg NEXT_PUBLIC_TRUSTCAPTCHA_SITE_KEY="$NEXT_PUBLIC_TRUSTCAPTCHA_SITE_KEY" \
              --build-arg NEXT_PUBLIC_VERSION="$version" \
              --build-arg NEXT_PUBLIC_BUILD_DATE="$(date --utc +'%Y-%m-%dT%H:%M:%SZ')" \
              -t "$image" ./client || exit 2

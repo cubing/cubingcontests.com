@@ -1,8 +1,10 @@
 import "server-only";
 import { apiKey } from "@better-auth/api-key";
 import { stripe } from "@better-auth/stripe";
+import { TrustCaptcha } from "@trustcomponent/trustcaptcha-nodejs";
 import { betterAuth, type SocialProviders } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { APIError, createAuthMiddleware } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { admin as adminPlugin, genericOAuth, organization, username } from "better-auth/plugins";
 import { sql } from "drizzle-orm";
@@ -330,5 +332,19 @@ export const auth = betterAuth({
         },
       },
     },
+  },
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      if (ctx.path === "/sign-up/email" && process.env.TRUSTCAPTCHA_API_KEY) {
+        const token = ctx.getHeader("x-captcha-verification-token");
+        if (!token) throw new APIError("BAD_REQUEST", { message: "Captcha token is missing" });
+
+        const verificationError = new APIError("BAD_REQUEST", { message: "Captcha verification failed" });
+        const result = await TrustCaptcha.getVerificationResult(process.env.TRUSTCAPTCHA_API_KEY, token).catch(() => {
+          throw verificationError;
+        });
+        if (!result.verificationPassed || result.score > 0.5) throw verificationError;
+      }
+    }),
   },
 });
