@@ -911,7 +911,11 @@ export async function getVideoBasedEvents(organizationId: string) {
 }
 
 export async function getRegions(organizationId: string): Promise<RegionResponse[]> {
-  return await db.select(regionsPublicCols).from(regionsTable).where(eq(regionsTable.organizationId, organizationId));
+  return await db
+    .select(regionsPublicCols)
+    .from(regionsTable)
+    .where(eq(regionsTable.organizationId, organizationId))
+    .orderBy(regionsTable.name);
 }
 
 export async function getBlogPosts(
