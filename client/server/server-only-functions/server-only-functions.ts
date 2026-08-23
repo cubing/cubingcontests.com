@@ -273,7 +273,6 @@ export async function getRecords({
   regionCode?: string;
 }): Promise<RecordRanking[]> {
   const events = await db.query.events.findMany({
-    with: { category: { columns: { categoryId: true } } },
     columns: { eventId: true },
     where: { organizationId, eventId, hidden: false, category: { categoryId: eventCategory, hidden: false } },
   });
@@ -327,10 +326,9 @@ export async function getRecords({
           inArray(resultsTable.regionalSingleRecord, recordTypes),
           inArray(resultsTable.regionalAverageRecord, recordTypes),
         ),
-        region && recordTypes.includes(region.superRegionRecordType!)
-          ? eq(resultsTable.superRegionCode, region.code)
+        region
+          ? eq(region.type === "super-region" ? resultsTable.superRegionCode : resultsTable.regionCode, region.code)
           : undefined,
-        recordTypes.includes("NR") ? eq(resultsTable.regionCode, region!.code) : undefined,
       ),
     )
     .orderBy(desc(resultsTable.date));
