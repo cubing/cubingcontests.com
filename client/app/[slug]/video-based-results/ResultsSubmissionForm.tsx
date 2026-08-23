@@ -339,11 +339,12 @@ function ResultsSubmissionForm({
         )}
         <FormTextInput
           id="discussion_link"
-          title="Link to discussion (optional)"
+          title="Link to discussion"
           placeholder="E.g: https://speedsolving.com/threads/xyz"
           value={discussionLink}
           setValue={setDiscussionLink}
           nextFocusTargetId="submit_button"
+          optional
           className="mb-3"
         />
         {discussionLink && (

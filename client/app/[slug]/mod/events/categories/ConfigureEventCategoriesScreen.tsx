@@ -124,11 +124,12 @@ function ConfigureEventCategoriesScreen({ eventCategories: initEventCategories }
             <div className="col">
               <FormTextInput
                 id="category_short_name"
-                title="Short name (optional)"
+                title="Short name"
                 tooltip="Displayed when space is limited"
                 value={shortName}
                 setValue={setShortName}
                 disabled={isPending}
+                optional
               />
             </div>
           </div>
@@ -170,11 +171,12 @@ function ConfigureEventCategoriesScreen({ eventCategories: initEventCategories }
           </div>
           <FormTextArea
             id="category_description"
-            title="Description (optional)"
+            title="Description"
             value={description}
             setValue={setDescription}
             rows={3}
             disabled={isPending}
+            optional
             className="mb-3"
           />
 

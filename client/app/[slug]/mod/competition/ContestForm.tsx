@@ -229,8 +229,8 @@ function ContestForm({
       type: type!,
       city: type === "online" ? C.onlineCompKey : city.trim(),
       regionCode,
-      venue: venue.trim(),
-      address: address.trim(),
+      venue,
+      address,
       latitudeMicrodegrees,
       longitudeMicrodegrees,
       startDate: startDate!,
@@ -240,7 +240,7 @@ function ContestForm({
       organizerIds: selectedOrganizers.map((o) => o.id),
       contact: contact.trim() || null,
       description: description.trim() || null,
-      competitorLimit,
+      competitorLimit: competitorLimit ?? null,
       schedule,
     });
 
@@ -654,6 +654,7 @@ function ContestForm({
                     value={address}
                     setValue={setAddress}
                     disabled={disabledIfDetailsImported || disabledIfContestPublished}
+                    optional={!IS_CUBING_CONTESTS_INSTANCE}
                     className="mb-3"
                   />
                   <div className="row">
@@ -663,6 +664,7 @@ function ContestForm({
                         value={venue}
                         setValue={setVenue}
                         disabled={disabledIfDetailsImported || disabledIfContestPublished}
+                        optional={!IS_CUBING_CONTESTS_INSTANCE}
                       />
                     </div>
                     <div className="col-12 col-md-6">
@@ -736,7 +738,7 @@ function ContestForm({
                 )}
               </div>
               <h5>
-                Organizers <span className="text-muted">(select at least one)</span>
+                Organizers <span className="text-muted tw:text-base">(select at least one)</span>
               </h5>
               <div className="my-3 rounded border bg-body-tertiary px-4 pt-3 pb-2">
                 <FormPersonInputs
@@ -761,23 +763,26 @@ function ContestForm({
                 }
                 integer
                 min={C.minCompetitorLimit}
+                optional={!IS_CUBING_CONTESTS_INSTANCE || !["comp", "wca-comp"].includes(type)}
                 className="mb-3"
               />
               <FormTextInput
                 id="contact"
-                title="Contact (optional)"
+                title="Contact"
                 placeholder="john@example.com"
                 value={contact}
                 setValue={setContact}
                 disabled={disabledIfContestPublished}
+                optional
                 className="mb-3"
               />
               <FormTextArea
-                title="Description (optional, Markdown supported)"
+                title="Description (Markdown supported)"
                 value={description}
                 setValue={setDescription}
                 disabled={disabledIfContestPublished}
                 rows={8}
+                optional
                 className="mb-3"
               />
               {type === "wca-comp" && (

@@ -162,7 +162,8 @@ function OrganizationForm() {
 
       <fieldset className="mb-4">
         <label htmlFor="logo_input" className="form-label">
-          Logo URL (optional)
+          Logo URL
+          <span className="tw:ms-1.5 tw:font-normal text-muted tw:text-sm">(optional)</span>
         </label>
         <input id="logo_input" type="url" name="logo" className="form-control" />
         <div className="form-text mt-2">

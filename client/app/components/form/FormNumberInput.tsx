@@ -16,6 +16,7 @@ type Props = {
   min?: number;
   max?: number;
   invalid?: boolean;
+  optional?: boolean;
 } & React.HTMLAttributes<HTMLInputElement>;
 
 function FormNumberInput({
@@ -32,6 +33,7 @@ function FormNumberInput({
   min = -Infinity,
   max = Infinity,
   invalid = false,
+  optional = false,
   className,
 }: Props) {
   if (!id && !title) throw new Error("Neither title nor id are set in FormNumberInput");
@@ -80,7 +82,7 @@ function FormNumberInput({
 
   return (
     <div className={className}>
-      {title && <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} />}
+      {title && <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} optional={optional} />}
 
       <input
         type="text"

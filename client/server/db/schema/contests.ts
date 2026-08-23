@@ -27,8 +27,8 @@ export const contestsTable = rrSchema.table(
     type: contestTypeEnum().notNull(),
     regionCode: d.text().notNull(),
     city: d.text().notNull(),
-    venue: d.text().notNull(),
-    address: d.text().notNull(),
+    venue: d.text(),
+    address: d.text(),
     latitudeMicrodegrees: d.integer().notNull(),
     longitudeMicrodegrees: d.integer().notNull(),
     startDate: d.timestamp().notNull(),
@@ -38,7 +38,7 @@ export const contestsTable = rrSchema.table(
     organizerIds: d.integer().array().notNull(), // person IDs of the organizers
     contact: d.text(),
     description: d.text(),
-    competitorLimit: d.integer().notNull(),
+    competitorLimit: d.integer(),
     participants: d.integer().default(0).notNull(),
     schedule: d.jsonb().$type<Schedule>(), // not used for meetups
     adminNotes: d.text(),

@@ -4,7 +4,7 @@ import { C, IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
 import type { Activity } from "~/helpers/types/Schedule.ts";
 import { ContestTypeValues } from "~/helpers/types.ts";
 import { getDateOnly } from "~/helpers/utility-functions.ts";
-import { ColorValidator, RegionCodeValidator } from "~/helpers/validators/Validators.ts";
+import { ColorValidator, RegionCodeValidator, TrimmedStringWithEmptyAsNull } from "~/helpers/validators/Validators.ts";
 
 const ActivityValidator = z.lazy((): any =>
   z
@@ -88,7 +88,7 @@ const duplicateIdsCheck = (val: any[]) => val.length === new Set(val.map((v) => 
 
 const VenueValidator = z.strictObject({
   id: z.int().min(1),
-  name: z.string().nonempty({ error: "Please enter the venue name" }),
+  name: z.string(),
   countryIso2: RegionCodeValidator,
   latitudeMicrodegrees,
   longitudeMicrodegrees,
@@ -128,8 +128,8 @@ export const ContestValidator = z
     type: z.enum(ContestTypeValues),
     city: z.string().nonempty(),
     regionCode: RegionCodeValidator,
-    venue: z.string(),
-    address: z.string(),
+    venue: IS_CUBING_CONTESTS_INSTANCE ? z.string().trim().nonempty() : TrimmedStringWithEmptyAsNull,
+    address: IS_CUBING_CONTESTS_INSTANCE ? z.string().trim().nonempty() : TrimmedStringWithEmptyAsNull,
     latitudeMicrodegrees,
     longitudeMicrodegrees,
     startDate: z.coerce.date(),
@@ -142,12 +142,16 @@ export const ContestValidator = z
       .refine((val) => val.length === new Set(val).size, { error: "List of organizers must not have duplicates" }),
     contact: z.email().nullable(),
     description: z.string().nullable(),
-    competitorLimit: z.int().min(C.minCompetitorLimit),
+    competitorLimit: z.int().min(C.minCompetitorLimit).nullable(),
     schedule: ScheduleValidator.nullable(),
   })
   .superRefine((val, ctx) => {
-    for (const key of ["competitionId", "name", "shortName"]) {
-      if (IS_CUBING_CONTESTS_INSTANCE) {
+    if (IS_CUBING_CONTESTS_INSTANCE) {
+      if (["comp", "wca-comp"].includes(val.type) && val.competitorLimit === null) {
+        ctx.addIssue({ code: "custom", message: "Please enter the competitor limit", input: val.competitorLimit });
+      }
+
+      for (const key of ["competitionId", "name", "shortName"]) {
         if (
           val.type !== "wca-comp" &&
           (/championship/i.test((val as any)[key]) || /national/i.test((val as any)[key]))
@@ -177,11 +181,8 @@ export const ContestValidator = z
       });
     }
 
-    if (val.type !== "online") {
-      if (!val.venue || !val.address)
-        ctx.addIssue({ code: "custom", message: "Please enter the venue and the address" });
-      if (!val.latitudeMicrodegrees || !val.longitudeMicrodegrees)
-        ctx.addIssue({ code: "custom", message: "Please enter the coordinates of the venue (they cannot be 0)" });
+    if (val.type !== "online" && (val.latitudeMicrodegrees === 0 || val.longitudeMicrodegrees === 0)) {
+      ctx.addIssue({ code: "custom", message: "Please enter the coordinates of the venue (they cannot be 0)" });
     }
 
     if (val.type === "meetup") {

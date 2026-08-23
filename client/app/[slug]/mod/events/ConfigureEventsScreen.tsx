@@ -280,27 +280,30 @@ function ConfigureEventsScreen({ events: initEvents, eventCategories, videoBased
             className="mb-3"
           />
           <FormTextArea
-            title="Description (optional)"
+            title="Description"
             value={description}
             setValue={setDescription}
             rows={3}
             disabled={isPending}
+            optional
             className="mb-3"
           />
           <FormTextArea
-            title="Rules (optional, Markdown supported)"
+            title="Rules (Markdown supported)"
             value={rule}
             setValue={setRule}
             rows={4}
             disabled={isPending}
+            optional
             className="mb-3"
           />
           <FormTextArea
-            title="Important information (optional)"
+            title="Important information"
             value={importantInfo}
             setValue={setImportantInfo}
             rows={3}
             disabled={isPending}
+            optional
             className="mb-3"
           />
           <p className="fs-6 mb-4">

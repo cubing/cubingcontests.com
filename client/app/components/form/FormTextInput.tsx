@@ -14,6 +14,7 @@ type Props = {
   monospace?: boolean;
   invalid?: boolean;
   oneLine?: boolean;
+  optional?: boolean;
 } & React.HTMLAttributes<HTMLInputElement>;
 
 function FormTextInput({
@@ -35,6 +36,7 @@ function FormTextInput({
   monospace,
   invalid,
   oneLine,
+  optional = false,
   className = "",
 }: Props) {
   if (!id && !title) throw new Error("Neither title nor id are set in FormTextInput");
@@ -53,7 +55,15 @@ function FormTextInput({
 
   return (
     <div className={`${oneLine ? "d-flex gap-3 align-items-center" : ""} ${className}`}>
-      {title && <FormInputLabel text={title} inputId={inputId} tooltip={tooltip} className={oneLine ? "mb-0" : ""} />}
+      {title && (
+        <FormInputLabel
+          text={title}
+          inputId={inputId}
+          tooltip={tooltip}
+          optional={optional}
+          className={oneLine ? "mb-0" : ""}
+        />
+      )}
 
       <div className="d-flex justify-content-between gap-3 align-items-center">
         <input

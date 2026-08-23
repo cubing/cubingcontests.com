@@ -194,11 +194,12 @@ function PersonForm({ personUnderEdit, creator, onSubmit, onSubmitError, onCance
         className="mb-3"
       />
       <FormTextInput
-        title="Localized Name (optional)"
+        title="Localized Name"
         id="localized_name"
         value={localizedName}
         setValue={setLocalizedName}
         disabled={isPending || hasWcaId}
+        optional
         className="mb-3"
       />
       <FormRegionSelect regionCode={regionCode} setRegionCode={setRegionCode} disabled={isPending || hasWcaId} />

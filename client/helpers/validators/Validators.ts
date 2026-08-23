@@ -11,3 +11,8 @@ export const RegionCodeValidator = z
   .string()
   .min(2, { error: "Invalid region code" })
   .max(2, { error: "Invalid region code" });
+
+export const TrimmedStringWithEmptyAsNull = z
+  .string()
+  .nullable()
+  .transform((val) => val?.trim() || null);
