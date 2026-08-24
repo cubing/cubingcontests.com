@@ -89,12 +89,12 @@ function ManageUsersScreen({ users: initUsers }: Props) {
           <h5 className="my-3">Roles</h5>
           <FormCheckbox
             title={rolesObject.user}
-            selected={isUser}
-            setSelected={setIsUser}
+            checked={isUser}
+            setChecked={setIsUser}
             disabled={isUpdating}
             className="mb-3"
           />
-          <FormCheckbox title={rolesObject.admin} selected={isAdmin} setSelected={setIsAdmin} disabled={isUpdating} />
+          <FormCheckbox title={rolesObject.admin} checked={isAdmin} setChecked={setIsAdmin} disabled={isUpdating} />
         </Form>
       )}
 

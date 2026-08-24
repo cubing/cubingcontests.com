@@ -198,7 +198,7 @@ function ConfigureEventsScreen({ events: initEvents, eventCategories, videoBased
             </div>
           </div>
           {mode === "edit" && (
-            <FormCheckbox title="Unlock event ID" selected={eventIdUnlocked} setSelected={setEventIdUnlocked} />
+            <FormCheckbox title="Unlock event ID" checked={eventIdUnlocked} setChecked={setEventIdUnlocked} />
           )}
           <div className="row mb-3">
             <div className="col">
@@ -249,16 +249,16 @@ function ConfigureEventsScreen({ events: initEvents, eventCategories, videoBased
           <h5 className="mb-3">Options</h5>
           <FormCheckbox
             title="Higher is better"
-            selected={higherIsBetter}
-            setSelected={setHigherIsBetter}
+            checked={higherIsBetter}
+            setChecked={setHigherIsBetter}
             disabled={mode === "edit" || isPending}
             className="mb-3"
           />
           {videoBasedResultsEnabled && (
             <FormCheckbox
               title="Allow video-based results"
-              selected={submissionsAllowed}
-              setSelected={setSubmissionsAllowed}
+              checked={submissionsAllowed}
+              setChecked={setSubmissionsAllowed}
               disabled={isPending}
               className="mb-3"
             />
@@ -266,16 +266,16 @@ function ConfigureEventsScreen({ events: initEvents, eventCategories, videoBased
           {format !== "number" && (
             <FormCheckbox
               title="Has memorization time input"
-              selected={hasMemo}
-              setSelected={setHasMemo}
+              checked={hasMemo}
+              setChecked={setHasMemo}
               disabled={isPending}
               className="mb-3"
             />
           )}
           <FormCheckbox
             title="Hidden event"
-            selected={hidden}
-            setSelected={setHidden}
+            checked={hidden}
+            setChecked={setHidden}
             disabled={isPending}
             className="mb-3"
           />

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useContext, useState, useTransition } from "react";
 import useSWR from "swr";
 import z from "zod";
+import CommunicationsCheckbox from "~/app/(auth)/CommunicationsCheckbox.tsx";
 import Captcha from "~/app/components/Captcha.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
@@ -52,6 +53,7 @@ function RegisterPage() {
         email,
         password: password as string,
         name: username,
+        communicationsAgreed: formData.get("communicationsAgreed") === "on",
         callbackURL: `/login?email=${email}`, // same as on the link-expired page
         fetchOptions: {
           headers: {
@@ -162,6 +164,7 @@ function RegisterPage() {
             )}
           </div>
         )}
+        <CommunicationsCheckbox disabled={isSubmitted || isPending} className="my-3" />
         <Captcha />
         <Button type="submit" isLoading={isSubmitting} disabled={isSubmitted || isPending} className="mt-3 w-100">
           Register

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useContext, useEffect, useState, useTransition } from "react";
 import useSWR from "swr";
+import CommunicationsCheckbox from "~/app/(auth)/CommunicationsCheckbox.tsx";
 import Competitor from "~/app/components/Competitor.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import Button from "~/app/components/UI/Button.tsx";
@@ -44,7 +45,7 @@ function UserSettingsScreen({ initPerson }: Props) {
   const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
   const { session, user, member } = useSession();
 
-  const { data: spaceType }: { data: SpaceType | undefined } = useSWR(SwrKey.SpaceType, { suspense: true });
+  const { data: spaceType }: { data: SpaceType | null } = useSWR(SwrKey.SpaceType, { suspense: true });
   const [status, setStatus] = useQueryState("status", parseAsStringLiteral(["signup-success", "email-change-success"]));
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]["value"]>("account");
   const [person, setPerson] = useState(initPerson);
@@ -53,8 +54,10 @@ function UserSettingsScreen({ initPerson }: Props) {
   const [wcaProfileLinkStatus, setWcaProfileLinkStatus] = useState<"disabled" | "enabled" | "pending" | "linked">(
     "disabled",
   );
+  const [highlightCommunications, setHighlightCommunications] = useState(false);
   const [isInitiatingEmailChange, startEmailChange] = useTransition();
   const [isDeleting, startDeleteAccountTransition] = useTransition();
+  const [isUpdatingCommunications, startCommunicationsUpdate] = useTransition();
 
   const tabs: NavigationItem[] = [
     { title: "Account", value: "account" },
@@ -71,7 +74,8 @@ function UserSettingsScreen({ initPerson }: Props) {
         .map((role) => (orgRolesObject as any)[role])
         .join(", ")
     : "";
-  const isPending = !session || wcaProfileLinkStatus === "pending" || isInitiatingEmailChange || isDeleting;
+  const isPending =
+    !session || wcaProfileLinkStatus === "pending" || isInitiatingEmailChange || isDeleting || isUpdatingCommunications;
 
   useEffect(() => {
     if (session && !accounts) {
@@ -83,14 +87,15 @@ function UserSettingsScreen({ initPerson }: Props) {
           changeErrorMessages([error.message || error.statusText]);
         } else {
           setAccounts(accs);
+          if (HAS_WCA_AUTH && accs.find((a) => a.providerId === "wca")) setWcaProfileLinkStatus("enabled");
 
-          if (status === "email-change-success") changeSuccessMessage("Your email has been changed successfully");
-
-          if (HAS_WCA_AUTH) {
-            if (status === "signup-success") changeSuccessMessage("Your account has been created successfully!");
-            if (accs.find((a) => a.providerId === "wca")) setWcaProfileLinkStatus("enabled");
+          if (status === "email-change-success") {
+            changeSuccessMessage("Your email has been changed successfully");
+          } else if (status === "signup-success") {
+            changeSuccessMessage("Your account has been created successfully");
+            setHighlightCommunications(true);
+            setTimeout(() => setHighlightCommunications(false), 2000);
           }
-
           setStatus(null);
         }
       })();
@@ -132,6 +137,23 @@ function UserSettingsScreen({ initPerson }: Props) {
       } else {
         changeSuccessMessage(
           "A verification link has been sent to your new email. Please click that link for confirmation.",
+        );
+      }
+    });
+  };
+
+  const toggleCommunications = (checked: boolean) => {
+    startCommunicationsUpdate(async () => {
+      resetMessages();
+      const { error } = await authClient.updateUser({ communicationsAgreed: checked });
+
+      if (error) {
+        changeErrorMessages([error.message || error.statusText]);
+      } else {
+        changeSuccessMessage(
+          checked
+            ? `You have opted in to receiving communications from ${process.env.NEXT_PUBLIC_PROJECT_NAME}`
+            : `You have opted out of receiving communications from ${process.env.NEXT_PUBLIC_PROJECT_NAME}`,
         );
       }
     });
@@ -190,6 +212,15 @@ function UserSettingsScreen({ initPerson }: Props) {
               </Button>
             </div>
           )}
+          <div
+            className={`mt-4 tw:rounded tw:p-1 tw:transition-colors tw:duration-1000 ${highlightCommunications ? "tw:bg-amber-200 tw:text-neutral-900" : ""}`}
+          >
+            <CommunicationsCheckbox
+              disabled={isPending}
+              checked={user.communicationsAgreed ?? false}
+              setChecked={toggleCommunications}
+            />
+          </div>
           {roles && (
             <p className="mt-3">
               Your role: <strong>{roles}</strong>.

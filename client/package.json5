@@ -6,7 +6,7 @@
     dev: "next dev -p $(grep -E '^PORT=' .env | sed -r 's/^PORT=([0-9]+).*/\\1/')",
     build: 'next build',
     start: 'next start',
-    check: 'npx @biomejs/biome check',
+    check: 'pnpm exec biome check',
     test: 'vitest run',
     'test:watch': 'vitest watch',
     'server-only-off': 'find "./" -type f -name "*.ts" -exec sed -i "s/^import \\"server-only\\";$/\\/\\/ import \\"server-only\\";/" {} +',
@@ -14,7 +14,8 @@
     // WHEN RUNNING DRIZZLE OR BETTER AUTH COMMANDS, USE THE TWO SCRIPTS ABOVE TO DISABLE AND THEN RE-ENABLE "server-only" IMPORTS!
     'db:migrate': 'drizzle-kit migrate',
     'db:generate': 'drizzle-kit generate',
-    'auth:generate': 'npx auth generate --config server/auth.ts --output ./server/db/schema/auth-schema.ts',
+    'auth:substitute-config': 'sed -E "s/\\.\\.\\.\\(IS_RR_INSTANCE \\/\\/.*auth:generate.*$/...(true/" server/auth.ts > auth.temp.ts',
+    'auth:generate': 'pnpm auth:substitute-config && pnpm exec auth generate --config auth.temp.ts --output ./server/db/schema/auth-schema.ts ; rm auth.temp.ts',
     'stripe:wh-listen': "stripe listen --forward-to localhost:3000/api/auth/stripe/webhook --api-key $(grep -E '^STRIPE_SECRET_KEY=' .env | sed -r 's/^STRIPE_SECRET_KEY=\"([^\"]+)\"$/\\1/')",
   },
   dependencies: {
@@ -69,6 +70,7 @@
   devDependencies: {
     '@biomejs/biome': '2.5.8',
     '@electric-sql/pglite': '0.5.5',
+    auth: '1.6.29',
     '@iconify-json/logos': '1.2.13',
     '@iconify-json/streamline-logos': '1.2.0',
     '@iconify-json/tabler': '1.2.38',

@@ -19,7 +19,6 @@ export type OrganizationMetadata = {
   private: boolean;
   contactEmail: string;
   showDonationLinks: boolean;
-  communicationsAgreed?: boolean;
 };
 
 export type OrganizationDetails = Pick<

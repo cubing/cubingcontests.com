@@ -261,8 +261,8 @@ function BillingScreen({ activeSubscription }: Props) {
           <div className="d-flex column-gap-2 mt-4 flex-wrap">
             <FormCheckbox
               title="I have read and accept the"
-              selected={isTosUnderstood}
-              setSelected={setIsTosUnderstood}
+              checked={isTosUnderstood}
+              setChecked={setIsTosUnderstood}
               disabled={isPending}
             />
             <a href="https://recordranks.com/tos" target="_blank" rel="noopener">

@@ -21,8 +21,8 @@ async function UserSettingsPage() {
     member?.personId
       ? db.select(personsPublicCols).from(personsTable).where(eq(personsTable.id, member.personId)).limit(1)
       : [],
-    member ? getRegions(member.organizationId) : undefined,
-    organization ? getSettingFromDb({ key: "space-type", organizationId: organization.id }) : undefined,
+    organization ? getRegions(organization.id) : undefined,
+    organization ? getSettingFromDb({ key: "space-type", organizationId: organization.id }) : null,
   ]);
 
   return (

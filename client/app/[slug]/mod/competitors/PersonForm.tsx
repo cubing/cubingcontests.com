@@ -178,8 +178,8 @@ function PersonForm({ personUnderEdit, creator, onSubmit, onSubmitError, onCance
           />
           <FormCheckbox
             title="Competitor doesn't have a WCA ID"
-            selected={!hasWcaId}
-            setSelected={changeHasWcaId}
+            checked={!hasWcaId}
+            setChecked={changeHasWcaId}
             disabled={isPending}
             className="mb-3"
           />

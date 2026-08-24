@@ -24,6 +24,7 @@ function LoginPage() {
 
   const isPending = isPendingSignIn || isPendingWcaSignIn || isPendingGoogleSignIn;
   const redirectUrl = searchParams.get("redirect") || "/";
+  const newUserCallbackURL = "/user/settings?status=signup-success";
 
   useEffect(() => {
     const email = searchParams.get("email");
@@ -65,7 +66,7 @@ function LoginPage() {
     const { error } = await authClient.signIn.oauth2({
       providerId: "wca",
       callbackURL: redirectUrl,
-      newUserCallbackURL: "/user/settings?status=signup-success",
+      newUserCallbackURL,
       // errorCallbackURL: "/oauth-error", // this is currently broken in Better Auth; see next.config.ts
     });
 
@@ -81,6 +82,7 @@ function LoginPage() {
     const { error } = await authClient.signIn.social({
       provider: "google",
       callbackURL: redirectUrl,
+      newUserCallbackURL,
     });
 
     if (error) {

@@ -371,12 +371,11 @@ export const createOrganizationSF = actionClient
       logo: z.string().optional(),
       contestTypes: z.array(z.enum(["comp", "meetup", "online"])).nonempty(),
       isPrivate: z.boolean(),
-      communicationsAgreed: z.boolean().optional(),
     }),
   )
   .action<{ slug: string }>(
     async ({
-      parsedInput: { name, slug, contactEmail, logo, contestTypes, isPrivate, communicationsAgreed },
+      parsedInput: { name, slug, contactEmail, logo, contestTypes, isPrivate },
       ctx: { session, httpHeaders },
     }) => {
       if (process.env.NEXT_PUBLIC_MULTITENANCY_ENABLED !== "true")
@@ -403,7 +402,6 @@ export const createOrganizationSF = actionClient
             private: isPrivate,
             contactEmail,
             showDonationLinks: true,
-            communicationsAgreed,
           },
         },
         headers: httpHeaders,

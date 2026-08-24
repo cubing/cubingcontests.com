@@ -1,5 +1,5 @@
 import "server-only";
-import { boolean, index, integer, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { boolean, index, integer, text, timestamp } from "drizzle-orm/pg-core";
 import { rrSchema } from "~/server/db/schema/schema.ts";
 
 const users = rrSchema.table("users", {
@@ -20,6 +20,7 @@ const users = rrSchema.table("users", {
   banReason: text("ban_reason"),
   banExpires: timestamp("ban_expires"),
   stripeCustomerId: text("stripe_customer_id"),
+  communicationsAgreed: boolean("communications_agreed"),
 });
 
 const sessions = rrSchema.table(
@@ -83,19 +84,15 @@ const verifications = rrSchema.table(
   (table) => [index("verifications_identifier_idx").on(table.identifier)],
 );
 
-const organizations = rrSchema.table(
-  "organizations",
-  {
-    id: text("id").primaryKey(),
-    name: text("name").notNull(),
-    slug: text("slug").notNull().unique(),
-    logo: text("logo"),
-    createdAt: timestamp("created_at").notNull(),
-    metadata: text("metadata"),
-    stripeCustomerId: text("stripe_customer_id"),
-  },
-  (table) => [uniqueIndex("organizations_slug_uidx").on(table.slug)],
-);
+const organizations = rrSchema.table("organizations", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  logo: text("logo"),
+  createdAt: timestamp("created_at").notNull(),
+  metadata: text("metadata"),
+  stripeCustomerId: text("stripe_customer_id"),
+});
 
 const members = rrSchema.table(
   "members",
@@ -155,7 +152,7 @@ const apikeys = rrSchema.table(
     enabled: boolean("enabled").default(true),
     rateLimitEnabled: boolean("rate_limit_enabled").default(true),
     rateLimitTimeWindow: integer("rate_limit_time_window").default(86400000),
-    rateLimitMax: integer("rate_limit_max").default(10),
+    rateLimitMax: integer("rate_limit_max").default(1000),
     requestCount: integer("request_count").default(0),
     remaining: integer("remaining"),
     lastRequest: timestamp("last_request"),

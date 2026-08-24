@@ -182,7 +182,7 @@ export const auth = betterAuth({
           }),
         ]
       : []),
-    ...(IS_RR_INSTANCE
+    ...(IS_RR_INSTANCE // SUBSTITUTED IN auth:generate SCRIPT
       ? [
           stripe({
             stripeClient: stripeClient!,
@@ -293,6 +293,10 @@ export const auth = betterAuth({
         type: "string",
         required: false,
         unique: true,
+      },
+      communicationsAgreed: {
+        type: "boolean",
+        required: false,
       },
     },
     changeEmail: {

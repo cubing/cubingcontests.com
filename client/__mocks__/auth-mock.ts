@@ -120,6 +120,10 @@ export const authMock = betterAuth({
         required: false,
         unique: true,
       },
+      communicationsAgreed: {
+        type: "boolean",
+        required: false,
+      },
     },
     changeEmail: {
       enabled: true,

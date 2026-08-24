@@ -181,17 +181,11 @@ function ConfigureEventCategoriesScreen({ eventCategories: initEventCategories }
           />
 
           <h5 className="mb-3">Options</h5>
-          <FormCheckbox
-            title="Hidden"
-            selected={hidden}
-            setSelected={setHidden}
-            disabled={isPending}
-            className="mb-3"
-          />
+          <FormCheckbox title="Hidden" checked={hidden} setChecked={setHidden} disabled={isPending} className="mb-3" />
           <FormCheckbox
             title="Video-based"
-            selected={videoBased}
-            setSelected={setVideoBased}
+            checked={videoBased}
+            setChecked={setVideoBased}
             disabled={isPending}
             className="mb-4"
           />

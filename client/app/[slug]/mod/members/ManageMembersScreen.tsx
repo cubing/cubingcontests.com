@@ -169,38 +169,38 @@ function ManageMembersScreen({
           <h5 className="mt-3 mb-3">Roles</h5>
           <FormCheckbox
             title={orgRolesObject.member}
-            selected={isMember}
-            setSelected={setIsMember}
+            checked={isMember}
+            setChecked={setIsMember}
             disabled={isPending || isMember} // removing this role isn't allowed
             className="mb-3"
           />
           <FormCheckbox
             title={orgRolesObject.mod}
-            selected={isMod}
-            setSelected={setIsMod}
+            checked={isMod}
+            setChecked={setIsMod}
             disabled={isPending}
             className="mb-3"
           />
           {videoBasedResultsEnabled && (
             <FormCheckbox
               title={orgRolesObject.videoBasedResultReviewer}
-              selected={isVideoBasedResultReviewer}
-              setSelected={setIsVideoBasedResultReviewer}
+              checked={isVideoBasedResultReviewer}
+              setChecked={setIsVideoBasedResultReviewer}
               disabled={isPending}
               className="mb-3"
             />
           )}
           <FormCheckbox
             title={orgRolesObject.admin}
-            selected={isAdmin}
-            setSelected={setIsAdmin}
+            checked={isAdmin}
+            setChecked={setIsAdmin}
             disabled={isPending}
             className="mb-3"
           />
           <FormCheckbox
             title={orgRolesObject.owner}
-            selected={isOwner}
-            setSelected={setIsOwner}
+            checked={isOwner}
+            setChecked={setIsOwner}
             disabled
             className="mb-3"
           />

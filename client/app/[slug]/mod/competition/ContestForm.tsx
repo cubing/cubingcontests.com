@@ -839,8 +839,8 @@ function ContestForm({
               <FormCheckbox
                 id="comp_photos_understood"
                 title="I understand"
-                selected={isCompPhotosUnderstood}
-                setSelected={setIsCompPhotosUnderstood}
+                checked={isCompPhotosUnderstood}
+                setChecked={setIsCompPhotosUnderstood}
               />
             </>
           )}
@@ -853,8 +853,8 @@ function ContestForm({
               <FormCheckbox
                 id="timeliness_understood"
                 title="I understand"
-                selected={isTimelinessUnderstood}
-                setSelected={setIsTimelinessUnderstood}
+                checked={isTimelinessUnderstood}
+                setChecked={setIsTimelinessUnderstood}
               />
             </>
           )}

@@ -1,12 +1,12 @@
 type Props = {
   id?: string;
   title?: string;
-  selected: boolean;
-  setSelected: (val: boolean) => void;
+  checked: boolean;
+  setChecked: (val: boolean) => void;
   disabled?: boolean;
 } & React.HTMLAttributes<HTMLDivElement>;
 
-function FormCheckbox({ id, title, selected, setSelected, disabled = false, className }: Props) {
+function FormCheckbox({ id, title, checked, setChecked, disabled = false, className }: Props) {
   if (!id && !title) throw new Error("Neither title nor id are set in FormCheckbox!");
 
   const inputId = `${id || title}_checkbox`;
@@ -17,8 +17,8 @@ function FormCheckbox({ id, title, selected, setSelected, disabled = false, clas
         className="form-check-input"
         id={inputId}
         type="checkbox"
-        checked={selected}
-        onChange={() => setSelected(!selected)}
+        checked={checked}
+        onChange={() => setChecked(!checked)}
         onKeyDown={(e) => {
           if (e.key === "Enter") e.preventDefault();
         }}

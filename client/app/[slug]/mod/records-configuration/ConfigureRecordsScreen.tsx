@@ -234,7 +234,7 @@ function ConfigureRecordsScreen({ recordConfigs: initRecordConfigs }: Props) {
               />
             </div>
             <div className="col-md-6 mb-3">
-              <FormCheckbox title="Active" selected={active} setSelected={setActive} disabled={isPending} />
+              <FormCheckbox title="Active" checked={active} setChecked={setActive} disabled={isPending} />
             </div>
           </div>
         </Form>

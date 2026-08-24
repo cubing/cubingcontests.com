@@ -30,7 +30,6 @@ function OrganizationForm() {
       ...Object.fromEntries(formData.entries()),
       contestTypes,
       isPrivate: formData.get("isPrivate") === "on",
-      communicationsAgreed: formData.get("communicationsAgreed") === "on",
     } as any);
 
     if (res.serverError || res.validationErrors) {
@@ -173,13 +172,6 @@ function OrganizationForm() {
           </a>{" "}
           to host your logo file on the RecordRanks servers.
         </div>
-      </fieldset>
-
-      <fieldset className="form-check mb-3">
-        <input id="communications_agreed" type="checkbox" name="communicationsAgreed" className="form-check-input" />
-        <label htmlFor="communications_agreed" className="form-check-label">
-          I want to receive communications from RecordRanks (you can unsubscribe at any time)
-        </label>
       </fieldset>
 
       <Button type="submit" isLoading={isCreating} className="mb-3 w-100">

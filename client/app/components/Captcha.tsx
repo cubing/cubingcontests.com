@@ -9,7 +9,7 @@ function Captcha() {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    if (process.env.NEXT_PUBLIC_TRUSTCAPTCHA_SITE_KEY) setIsClient(true);
+    if (process.env.NODE_ENV === "production" && process.env.NEXT_PUBLIC_TRUSTCAPTCHA_SITE_KEY) setIsClient(true);
   }, []);
 
   if (!isClient) return null;

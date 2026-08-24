@@ -311,8 +311,8 @@ function ContestEvents({
                         <FormCheckbox
                           title=""
                           id={`cumulative_limit_${round.eventId}_r${round.roundNumber}`}
-                          selected={!!round.timeLimitCumulativeRoundIds}
-                          setSelected={() => changeRoundTimeLimitCumulative(round.eventId, round.roundNumber)}
+                          checked={!!round.timeLimitCumulativeRoundIds}
+                          setChecked={() => changeRoundTimeLimitCumulative(round.eventId, round.roundNumber)}
                           disabled={totalRoundResults > 0}
                         />
                       </div>
@@ -323,8 +323,8 @@ function ContestEvents({
                       <FormCheckbox
                         title="Enabled"
                         id={`cutoff_${round.eventId}_${round.roundNumber}`}
-                        selected={round.cutoffNumberOfAttempts !== null}
-                        setSelected={() => changeRoundCutoffEnabled(round.eventId, round.roundNumber)}
+                        checked={round.cutoffNumberOfAttempts !== null}
+                        setChecked={() => changeRoundCutoffEnabled(round.eventId, round.roundNumber)}
                         disabled={totalRoundResults > 0}
                       />
 
