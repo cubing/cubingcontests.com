@@ -8,19 +8,19 @@ import { useSearchParams } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
 import { useCallback, useContext, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
-import Competitor from "~/app/components/Competitor.tsx";
 import CreatorDetails from "~/app/components/CreatorDetails.tsx";
 import FiltersContainer from "~/app/components/FiltersContainer.tsx";
 import ContestSelect from "~/app/components/form/ContestSelect.tsx";
 import FormRegionSelect from "~/app/components/form/FormRegionSelect.tsx";
 import FormSelect from "~/app/components/form/FormSelect.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
+import Person from "~/app/components/Person.tsx";
 import Region from "~/app/components/Region.tsx";
 import ActiveInactiveIcon from "~/app/components/UI/ActiveInactiveIcon.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
-import { C } from "~/helpers/constants.ts";
+import { C, IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { useSession } from "~/helpers/hooks.ts";
 import { SwrKey } from "~/helpers/swr-keys.ts";
@@ -258,7 +258,7 @@ function ManagePersonsScreen({ persons: initPersons, creators }: Props) {
             </FiltersContainer>
 
             <p className="mb-2">
-              Number of competitors:&nbsp;<b>{isValidating ? "…" : persons.length}</b>
+              Number of persons:&nbsp;<b>{isValidating ? "…" : persons.length}</b>
             </p>
           </div>
 
@@ -296,10 +296,20 @@ function ManagePersonsScreen({ persons: initPersons, creators }: Props) {
                         >
                           <td>{person.id}</td>
                           <td>
-                            <Competitor person={person} noFlag />
+                            <Person person={person} noFlag />
                           </td>
                           <td>{person.localizedName}</td>
-                          {spaceType === "speedcubing" && <td>{person.wcaId}</td>}
+                          {spaceType === "speedcubing" && (
+                            <td>
+                              <a
+                                href={`https://www.worldcubeassociation.org/persons/${person.wcaId}`}
+                                target="_blank"
+                                rel="noopener"
+                              >
+                                {person.wcaId}
+                              </a>
+                            </td>
+                          )}
                           <td>
                             <Region regionCode={person.regionCode} shorten />
                           </td>

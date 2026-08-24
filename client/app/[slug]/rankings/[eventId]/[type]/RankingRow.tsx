@@ -6,8 +6,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import Attempts from "~/app/components/Attempts.tsx";
-import Competitor from "~/app/components/Competitor.tsx";
 import Competitors from "~/app/components/Competitors.tsx";
+import Person from "~/app/components/Person.tsx";
 import RankingLinks from "~/app/components/RankingLinks.tsx";
 import Region from "~/app/components/Region.tsx";
 import type { Ranking } from "~/helpers/types/Rankings.ts";
@@ -90,7 +90,7 @@ function RankingRow({
               </button>
             </span>
 
-            {expanded && ranking.persons.map((p) => <Competitor key={p.id} person={p} />)}
+            {expanded && ranking.persons.map((p) => <Person key={p.id} person={p} />)}
           </div>
         </td>
       )}

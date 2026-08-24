@@ -1,10 +1,10 @@
 import { faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Attempts from "~/app/components/Attempts.tsx";
-import Competitor from "~/app/components/Competitor.tsx";
+import Competitors from "~/app/components/Competitors.tsx";
 import Time from "~/app/components/Time.tsx";
 import Button from "~/app/components/UI/Button.tsx";
-import { C } from "~/helpers/constants";
+import { C, IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants";
 import { roundFormats } from "~/helpers/roundFormats.ts";
 import { getIsProceedableResult } from "~/helpers/utility-functions.ts";
 import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
@@ -90,18 +90,10 @@ function RoundResultsTable({
                   <span className={isTie ? "text-secondary" : ""}>{result.ranking}</span>
                 </td>
                 <td>
-                  <div className="d-flex flex-wrap gap-2">
-                    {result.personIds.map((personId, i) => {
-                      const person = persons.find((p) => p.id === personId);
-                      if (!person) return <span key={personId}>(name not found)</span>;
-                      return (
-                        <span key={person.id} className="d-flex gap-2">
-                          <Competitor person={person} showLocalizedName />
-                          {i !== result.personIds.length - 1 && <span>&</span>}
-                        </span>
-                      );
-                    })}
-                  </div>
+                  <Competitors
+                    persons={result.personIds.map((pid) => persons.find((p) => p.id === pid))}
+                    showWcaLink={IS_CUBING_CONTESTS_INSTANCE}
+                  />
                 </td>
                 <td>
                   <Time result={result} event={event} recordConfigs={recordConfigs} />

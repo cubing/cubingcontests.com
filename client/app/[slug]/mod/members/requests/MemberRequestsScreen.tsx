@@ -4,7 +4,7 @@ import { faCheck, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useAction } from "next-safe-action/hooks";
 import { useContext, useState } from "react";
-import Competitor from "~/app/components/Competitor.tsx";
+import Person from "~/app/components/Person.tsx";
 import ActiveInactiveIcon from "~/app/components/UI/ActiveInactiveIcon.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import { MainContext } from "~/helpers/contexts.ts";
@@ -84,7 +84,7 @@ function MemberRequestsScreen({ memberRequests: initMemberRequests }: Props) {
                   <td>
                     {mr.requestedPerson && (
                       <div className="d-flex gap-3 align-items-center">
-                        <Competitor person={mr.requestedPerson} showWcaId />
+                        <Person person={mr.requestedPerson} showWcaId showWcaLink />
                         <ActiveInactiveIcon isActive={mr.requestedPerson.approved} />
                       </div>
                     )}

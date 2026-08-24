@@ -7,8 +7,8 @@ import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { useContext, useEffect, useState, useTransition } from "react";
 import useSWR from "swr";
 import CommunicationsCheckbox from "~/app/(auth)/CommunicationsCheckbox.tsx";
-import Competitor from "~/app/components/Competitor.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
+import Person from "~/app/components/Person.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import Tabs from "~/app/components/UI/Tabs.tsx";
@@ -231,7 +231,7 @@ function UserSettingsScreen({ initPerson }: Props) {
             <div className="d-flex flex-wrap gap-2">
               <span>Your competitor profile:</span>
               <div className="d-flex gap-2">
-                <Competitor person={person} showLocalizedName />
+                <Person person={person} showLocalizedName showWcaLink />
                 <span>
                   (ID: <strong>{person.id}</strong>)
                 </span>

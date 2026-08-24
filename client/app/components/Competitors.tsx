@@ -1,23 +1,22 @@
-import Competitor from "~/app/components/Competitor.tsx";
+import Person from "~/app/components/Person.tsx";
 import type { PersonResponse } from "~/server/db/schema/persons.ts";
 
 type Props = {
   persons: (Pick<PersonResponse, "id" | "name" | "localizedName" | "regionCode" | "wcaId"> | undefined)[];
   noFlag?: boolean;
   vertical?: boolean;
+  showWcaLink?: boolean;
 };
 
-function Competitors({ persons, noFlag = false, vertical = false }: Props) {
+function Competitors({ persons, noFlag = false, vertical = false, showWcaLink = false }: Props) {
   if (vertical) {
     return (
-      <div className="d-flex flex-column gap-2">
+      <div className="tw:flex tw:flex-col tw:gap-2">
         {persons.map((person, index) =>
           person ? (
-            <Competitor key={person.id} person={person} noFlag={noFlag} />
+            <Person key={person.id} person={person} noFlag={noFlag} showWcaLink={showWcaLink} />
           ) : (
-            <span key={index} className="text-danger">
-              COMPETITOR NOT FOUND
-            </span>
+            <span key={index}>(not found)</span>
           ),
         )}
       </div>
@@ -25,24 +24,29 @@ function Competitors({ persons, noFlag = false, vertical = false }: Props) {
   }
 
   return (
-    <div className="d-flex flex-wrap gap-2 align-items-start">
-      {persons.map((person, index) =>
-        person ? (
-          <span key={person.id} className="d-flex gap-2">
-            <span className="d-none d-md-block">
-              <Competitor key={person.id} person={person} noFlag={noFlag} showLocalizedName={persons.length === 1} />
-            </span>
-            <span className="d-md-none">
-              <Competitor key={person.id} person={person} noFlag={noFlag} />
-            </span>
-            {index !== persons.length - 1 && <span>&</span>}
-          </span>
-        ) : (
-          <span key={index} className="text-danger">
-            COMPETITOR NOT FOUND
-          </span>
-        ),
-      )}
+    <div className="tw:flex tw:flex-wrap tw:items-start tw:gap-2">
+      {persons.map((person, index) => (
+        <span key={person?.id ?? index} className="tw:flex tw:gap-2">
+          {person ? (
+            <>
+              <span className="d-none d-md-block">
+                <Person
+                  person={person}
+                  noFlag={noFlag}
+                  showLocalizedName={persons.length === 1}
+                  showWcaLink={showWcaLink}
+                />
+              </span>
+              <span className="d-md-none">
+                <Person person={person} noFlag={noFlag} showWcaLink={showWcaLink} />
+              </span>
+            </>
+          ) : (
+            <span>(not found)</span>
+          )}
+          {index !== persons.length - 1 && <span>&</span>}
+        </span>
+      ))}
     </div>
   );
 }

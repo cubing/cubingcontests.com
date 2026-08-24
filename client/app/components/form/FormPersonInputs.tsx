@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
 import { useCallback, useContext, useState } from "react";
 import useSWR from "swr";
-import Competitor from "~/app/components/Competitor.tsx";
+import Person from "~/app/components/Person.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import { C, IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
@@ -250,7 +250,7 @@ function FormPersonInputs({
                       onMouseDown={() => selectPerson(inputIndex, matchIndex)}
                     >
                       {person !== null ? (
-                        <Competitor person={person} showWcaId showLocalizedName noLink />
+                        <Person person={person} showWcaId showLocalizedName noLink />
                       ) : (
                         "(add new person)"
                       )}

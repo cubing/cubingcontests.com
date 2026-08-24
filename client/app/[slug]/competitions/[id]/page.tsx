@@ -6,8 +6,8 @@ import Markdown from "react-markdown";
 import { SWRConfig } from "swr";
 import ContestLayout from "~/app/[slug]/competitions/[id]/ContestLayout.tsx";
 import ContestControls from "~/app/[slug]/mod/ContestControls.tsx";
-import Competitor from "~/app/components/Competitor.tsx";
 import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
+import Person from "~/app/components/Person.tsx";
 import Region from "~/app/components/Region.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
@@ -117,9 +117,9 @@ async function ContestDetailsPage({ params }: Props) {
                 <p className="mb-2">
                   {organizers.length > 1 ? "Organizers" : "Organizer"}:&#8194;
                   {organizers.map((org, index) => (
-                    <span key={org.id} className="d-flex-inline">
-                      {index !== 0 && <span className="me-1">,</span>}
-                      <Competitor person={org} noFlag />
+                    <span key={org.id} className={`${organizers.length > 2 ? "fs-6" : "fs-5"} tw:me-1 tw:inline-flex`}>
+                      <Person person={org} noFlag />
+                      {index !== organizers.length - 1 && ","}
                     </span>
                   ))}
                 </p>

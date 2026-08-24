@@ -1,7 +1,7 @@
 import { faGear } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { ReactElement } from "react";
-import Competitor from "~/app/components/Competitor.tsx";
+import Person from "~/app/components/Person.tsx";
 import type { Creator } from "~/helpers/types.ts";
 
 const ApiIcon = (
@@ -39,7 +39,7 @@ function CreatorDetails({
   }
 
   const creatorName = creator?.email ? <a href={`mailto:${creator.email}`}>{creator!.name}</a> : creator!.name;
-  const competitor = creator?.person ? <Competitor person={creator.person} noFlag /> : undefined;
+  const competitor = creator?.person ? <Person person={creator.person} noFlag showWcaLink /> : undefined;
 
   return (
     <div className={`d-flex column-gap-2 flex-wrap align-items-center ${className}`}>

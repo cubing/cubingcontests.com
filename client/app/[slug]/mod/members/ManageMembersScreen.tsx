@@ -4,12 +4,12 @@ import { faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useAction } from "next-safe-action/hooks";
 import { useContext, useMemo, useState } from "react";
-import Competitor from "~/app/components/Competitor.tsx";
 import FiltersContainer from "~/app/components/FiltersContainer.tsx";
 import Form from "~/app/components/form/Form.tsx";
 import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
 import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
+import Person from "~/app/components/Person.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import type { authClient } from "~/helpers/auth-client.ts";
 import { MainContext } from "~/helpers/contexts.ts";
@@ -156,7 +156,7 @@ function ManageMembersScreen({
             </div>
           </div>
           <FormPersonInputs
-            title="Competitor"
+            title="Person Profile"
             persons={persons}
             setPersons={setPersons}
             personNames={personNames}
@@ -225,7 +225,7 @@ function ManageMembersScreen({
               <th scope="col">#</th>
               <th scope="col">Name</th>
               <th scope="col">Email</th>
-              <th scope="col">Competitor</th>
+              <th scope="col">Person</th>
               <th scope="col">Roles</th>
               <th scope="col">Actions</th>
             </tr>
@@ -245,7 +245,7 @@ function ManageMembersScreen({
                     {m.user.name}
                   </td>
                   <td>{m.user.email}</td>
-                  <td>{person && <Competitor person={person} noFlag />}</td>
+                  <td>{person && <Person person={person} noFlag showWcaLink />}</td>
                   <td>{roles}</td>
                   <td>
                     <div className="d-flex gap-2">
