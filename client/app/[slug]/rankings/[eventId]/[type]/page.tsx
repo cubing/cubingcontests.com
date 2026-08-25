@@ -118,7 +118,7 @@ async function RankingsPage({ params, searchParams }: Props) {
 
               <div className="d-flex flex-wrap gap-3">
                 <div>
-                  <h5 className="d-flex gap-1">
+                  <h5 className="d-flex mb-2 gap-1">
                     Type
                     {type === "all-avg-formats" && (
                       <Tooltip
@@ -128,7 +128,7 @@ async function RankingsPage({ params, searchParams }: Props) {
                     )}
                   </h5>
                   {/* biome-ignore lint/a11y/useSemanticElements: this is the most suitable way to make a button group */}
-                  <div className="btn-group btn-group-sm mt-2" role="group" aria-label="Type">
+                  <div className="btn-group btn-group-sm" role="group" aria-label="Type">
                     <Link
                       href={slugPath(slug, `/rankings/${eventId}/single?${urlSearchParams}`)}
                       prefetch={false}
@@ -154,9 +154,9 @@ async function RankingsPage({ params, searchParams }: Props) {
                 </div>
 
                 <div>
-                  <h5>Show</h5>
+                  <h5 className="mb-2">Show</h5>
                   {/* biome-ignore lint/a11y/useSemanticElements: this is the most suitable way to make a button group */}
-                  <div className="btn-group btn-group-sm mt-2" role="group" aria-label="Show">
+                  <div className="btn-group btn-group-sm" role="group" aria-label="Show">
                     <Link
                       href={slugPath(slug, `/rankings/${eventId}/${type}?${urlSearchParamsWithoutShow}`)}
                       prefetch={false}
@@ -180,9 +180,9 @@ async function RankingsPage({ params, searchParams }: Props) {
                 </div>
 
                 <div>
-                  <h5>Top</h5>
+                  <h5 className="mb-2">Top</h5>
                   {/* biome-ignore lint/a11y/useSemanticElements: this is the most suitable way to make a button group */}
-                  <div className="btn-group btn-group-sm mt-2" role="group" aria-label="Top">
+                  <div className="btn-group btn-group-sm" role="group" aria-label="Top">
                     <Link
                       href={slugPath(slug, `/rankings/${eventId}/${type}?${urlSearchParamsWithoutTopN}`)}
                       prefetch={false}

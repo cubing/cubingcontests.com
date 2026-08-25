@@ -7,9 +7,16 @@ type Props = {
   selectedCategory: RecordCategory | "all";
   recordCategories: RecordCategory[];
   allCategoriesOption?: boolean;
+  noTitle?: boolean;
 };
 
-function RecordCategoriesButtonGroup({ pathTemplate, selectedCategory, recordCategories, allCategoriesOption }: Props) {
+function RecordCategoriesButtonGroup({
+  pathTemplate,
+  selectedCategory,
+  recordCategories,
+  allCategoriesOption,
+  noTitle,
+}: Props) {
   if (recordCategories.length < 2) return;
 
   const categories: (RecordCategory | "all")[] = [...recordCategories];
@@ -17,9 +24,9 @@ function RecordCategoriesButtonGroup({ pathTemplate, selectedCategory, recordCat
 
   return (
     <div>
-      <h5>Category</h5>
+      {!noTitle && <h5 className="mb-2">Category</h5>}
       {/* biome-ignore lint/a11y/useSemanticElements: this is the most suitable way to make a button group */}
-      <div className="btn-group btn-group-sm mt-2" role="group" aria-label="Contest Type">
+      <div className="btn-group btn-group-sm" role="group" aria-label="Contest Type">
         {categories.map((rc) => (
           <Link
             key={rc}

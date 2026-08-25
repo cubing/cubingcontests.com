@@ -1,5 +1,6 @@
 export const SwrKey = {
   SpaceType: "space-type",
+  Events: "events",
   Regions: "regions",
   MemberRequestDetails: "member-request-details",
   MemberRequestInstructions: "member-request-instructions",
