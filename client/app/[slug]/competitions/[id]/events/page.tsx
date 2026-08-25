@@ -1,8 +1,9 @@
 import { and, asc, eq, getColumns } from "drizzle-orm";
 import type { Metadata } from "next";
-import ContestLayout from "~/app/[slug]/competitions/[id]/ContestLayout.tsx";
+import { getContestTabs } from "~/app/[slug]/competitions/[id]/tabs.ts";
 import EventTitle from "~/app/components/EventTitle.tsx";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
+import Tabs from "~/app/components/UI/Tabs.tsx";
 import { roundFormats } from "~/helpers/roundFormats.ts";
 import { roundTypes } from "~/helpers/roundTypes.ts";
 import { getFormattedResult, getFormattedTimeLimit } from "~/helpers/utility-functions.ts";
@@ -59,7 +60,9 @@ async function ContestEventsPage({ params }: Props) {
   if (!contest || !roundsData) return <LoadingError loadingEntity="contest" />;
 
   return (
-    <ContestLayout organizationSlug={slug} contest={contest} activeTab="events">
+    <>
+      <Tabs tabs={getContestTabs(slug, contest)} activeTab="events" forServerSidePage replace />
+
       <div className="table-responsive mb-5 flex-grow-1">
         <table className="table-hover table text-nowrap">
           <thead>
@@ -109,7 +112,7 @@ async function ContestEventsPage({ params }: Props) {
           </tbody>
         </table>
       </div>
-    </ContestLayout>
+    </>
   );
 }
 

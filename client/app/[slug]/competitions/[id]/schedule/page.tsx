@@ -1,8 +1,9 @@
 import { and, eq, inArray } from "drizzle-orm";
 import type { Metadata } from "next";
-import ContestLayout from "~/app/[slug]/competitions/[id]/ContestLayout.tsx";
+import { getContestTabs } from "~/app/[slug]/competitions/[id]/tabs.ts";
 import Schedule from "~/app/components/Schedule.tsx";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
+import Tabs from "~/app/components/UI/Tabs.tsx";
 import { db } from "~/server/db/provider.ts";
 import { eventsPublicCols, eventsTable } from "~/server/db/schema/events.ts";
 import { getOrgDetails } from "~/server/server-only-functions/server-only-functions.ts";
@@ -54,7 +55,9 @@ async function CompetitionSchedulePage({ params }: Props) {
   if (!contest?.schedule || !rounds || !events) return <LoadingError loadingEntity="contest" />;
 
   return (
-    <ContestLayout organizationSlug={slug} contest={contest} activeTab="schedule">
+    <>
+      <Tabs tabs={getContestTabs(slug, contest)} activeTab="schedule" forServerSidePage replace />
+
       <Schedule
         organizationSlug={slug}
         rooms={contest.schedule.venues[0].rooms}
@@ -63,7 +66,7 @@ async function CompetitionSchedulePage({ params }: Props) {
         timezone={contest.schedule.venues[0].timezone}
         contestType={contest.type}
       />
-    </ContestLayout>
+    </>
   );
 }
 

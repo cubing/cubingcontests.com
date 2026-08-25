@@ -11,14 +11,12 @@ import Tabs from "~/app/components/UI/Tabs.tsx";
 import { SwrKey } from "~/helpers/swr-keys.ts";
 import { type RecordCategory, RecordCategoryValues } from "~/helpers/types.ts";
 import { slugPath } from "~/helpers/utility-functions.ts";
-import { db } from "~/server/db/provider.ts";
 import {
   getEnabledRecordCategories,
   getEventCategories,
   getEvents,
   getOrgDetails,
   getPersonalRecords,
-  getRegions,
 } from "~/server/server-only-functions/server-only-functions.ts";
 
 const ParamsValidator = z.strictObject({
@@ -45,15 +43,11 @@ async function PersonPage({ params, searchParams }: Props) {
   const organization = await getOrgDetails({ slug });
   const personId = parseInt(id, 10);
 
-  const [person, regions, eventCategories, events, enabledRecordCategories] = await Promise.all([
-    db.query.persons.findFirst({ where: { organizationId: organization.id, id: personId } }),
-    getRegions(organization.id),
+  const [eventCategories, events, enabledRecordCategories] = await Promise.all([
     getEventCategories({ organizationId: organization.id }),
     getEvents({ organizationId: organization.id }),
     getEnabledRecordCategories({ organizationId: organization.id }),
   ]);
-
-  if (!person) return <LoadingError loadingEntity="person" />;
 
   const visibleEventCategories = eventCategories.filter(
     (ec) => !ec.hidden && events.some((e) => e.categoryId === ec.id),
@@ -69,50 +63,46 @@ async function PersonPage({ params, searchParams }: Props) {
   const prsPromise = getPersonalRecords({ personId, eventCategoryId: selectedEventCategory.id, recordCategory });
 
   return (
-    <SWRConfig value={{ fallback: { [SwrKey.Regions]: regions, [SwrKey.Events]: events } }}>
-      <section>
-        <h2 className="mb-3 text-center">{person.name}</h2>
+    <SWRConfig value={{ fallback: { [SwrKey.Events]: events } }}>
+      <Tabs tabs={getPersonsTabs(slug, personId)} activeTab="prs" forServerSidePage replace />
 
-        <Tabs tabs={getPersonsTabs(slug, personId)} activeTab="prs" forServerSidePage />
+      <div className="d-flex mb-3 flex-wrap gap-3 px-2">
+        {visibleEventCategories.length > 1 && (
+          // biome-ignore lint/a11y/useSemanticElements: this is the most suitable way to make a button group
+          <div className="btn-group btn-group-sm" role="group">
+            {visibleEventCategories.map((cat) => {
+              const urlSearchParams = new URLSearchParams();
+              if (category) urlSearchParams.set("category", category);
+              urlSearchParams.set("eventCategory", cat.categoryId);
 
-        <div className="d-flex mb-3 flex-wrap gap-3 px-2">
-          {visibleEventCategories.length > 1 && (
-            // biome-ignore lint/a11y/useSemanticElements: this is the most suitable way to make a button group
-            <div className="btn-group btn-group-sm" role="group">
-              {visibleEventCategories.map((cat) => {
-                const urlSearchParams = new URLSearchParams();
-                if (category) urlSearchParams.set("category", category);
-                urlSearchParams.set("eventCategory", cat.categoryId);
+              return (
+                <Link
+                  key={cat.id}
+                  href={slugPath(slug, `/persons/${personId}?${urlSearchParams}`)}
+                  prefetch={false}
+                  className={`btn btn-primary ${cat.categoryId === selectedEventCategory.categoryId ? "active" : ""}`}
+                >
+                  <span className="d-none d-md-inline">{cat.name}</span>
+                  <span className="d-inline d-md-none">{cat.shortName || cat.name}</span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
 
-                return (
-                  <Link
-                    key={cat.id}
-                    href={slugPath(slug, `/persons/${personId}?${urlSearchParams}`)}
-                    prefetch={false}
-                    className={`btn btn-primary ${cat.categoryId === selectedEventCategory.categoryId ? "active" : ""}`}
-                  >
-                    <span className="d-none d-md-inline">{cat.name}</span>
-                    <span className="d-inline d-md-none">{cat.shortName || cat.name}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
+        <RecordCategoriesButtonGroup
+          pathTemplate={`${slugPath(slug, `/persons/${personId}`)}?${
+            urlSearchParamsWithoutCategory.toString() ? `${urlSearchParamsWithoutCategory}&` : ""
+          }category=__CATEGORY__`}
+          selectedCategory={recordCategory}
+          recordCategories={enabledRecordCategories}
+          noTitle
+        />
+      </div>
 
-          <RecordCategoriesButtonGroup
-            pathTemplate={`${slugPath(slug, `/persons/${personId}`)}?${
-              urlSearchParamsWithoutCategory.toString() ? `${urlSearchParamsWithoutCategory}&` : ""
-            }category=__CATEGORY__`}
-            selectedCategory={recordCategory}
-            recordCategories={enabledRecordCategories}
-            noTitle
-          />
-        </div>
-
-        <Suspense fallback={<Loading />}>
-          <PRsTable prsPromise={prsPromise} organizationSlug={slug} />
-        </Suspense>
-      </section>
+      <Suspense fallback={<Loading />}>
+        <PRsTable prsPromise={prsPromise} organizationSlug={slug} />
+      </Suspense>
     </SWRConfig>
   );
 }

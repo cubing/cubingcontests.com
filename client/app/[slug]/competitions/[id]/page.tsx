@@ -4,13 +4,14 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Markdown from "react-markdown";
 import { SWRConfig } from "swr";
-import ContestLayout from "~/app/[slug]/competitions/[id]/ContestLayout.tsx";
+import { getContestTabs } from "~/app/[slug]/competitions/[id]/tabs.ts";
 import ContestControls from "~/app/[slug]/mod/ContestControls.tsx";
 import ContestTypeBadge from "~/app/components/ContestTypeBadge.tsx";
 import Person from "~/app/components/Person.tsx";
 import Region from "~/app/components/Region.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
+import Tabs from "~/app/components/UI/Tabs.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import WcaCompAdditionalDetails from "~/app/components/WcaCompAdditionalDetails.tsx";
 import { SwrKey } from "~/helpers/swr-keys.ts";
@@ -90,7 +91,9 @@ async function ContestDetailsPage({ params }: Props) {
   };
 
   return (
-    <ContestLayout organizationSlug={slug} contest={contest} activeTab="details">
+    <>
+      <Tabs tabs={getContestTabs(slug, contest)} activeTab="details" forServerSidePage replace />
+
       <SWRConfig value={{ fallback: { [SwrKey.Regions]: regions } }}>
         <Suspense fallback={<Loading />}>
           <div className="row fs-5 mx-0 w-100">
@@ -173,7 +176,7 @@ async function ContestDetailsPage({ params }: Props) {
           </div>
         </Suspense>
       </SWRConfig>
-    </ContestLayout>
+    </>
   );
 }
 
