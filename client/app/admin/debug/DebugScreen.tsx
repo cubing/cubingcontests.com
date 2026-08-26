@@ -56,7 +56,7 @@ function DebugScreen() {
       <p>Build date: {process.env.NEXT_PUBLIC_BUILD_DATE || "UNKNOWN"}</p>
 
       <h4 className="my-4">Member data</h4>
-      <code>{JSON.stringify(member, null, 2)}</code>
+      <code>{member ? JSON.stringify(member, null, 2) : "NO DATA"}</code>
 
       <h4 className="my-4">Environment variables (client-side)</h4>
       <code>

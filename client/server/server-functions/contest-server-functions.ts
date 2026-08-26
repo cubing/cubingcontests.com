@@ -452,7 +452,7 @@ export const publishContestSF = actionClient
     const wcaPersons: { name: string; wcaId: string; countryIso2: string }[] = [];
 
     if (contest.type === "wca-comp") {
-      const res = await fetch(`https://www.worldcubeassociation.org/api/v0/competitions/${competitionId}/results`);
+      const res = await fetch(`${C.wcaV0ApiBaseUrl}/competitions/${competitionId}/results`);
       const wcaCompResultsData = await res.json();
       if (!wcaCompResultsData || wcaCompResultsData.length === 0) {
         throw new RrActionError(

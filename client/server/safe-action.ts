@@ -64,7 +64,7 @@ export const actionClient = createSafeActionClient({
 
   if (metadata.auth === null) {
     const session = await auth.api.getSession({ headers: httpHeaders });
-    return next({ ctx: { session: session ?? undefined } });
+    return next({ ctx: { session: session ?? undefined, httpHeaders } });
   } else {
     const session = await authorizeUser(metadata.auth, httpHeaders);
     return next({ ctx: { session, httpHeaders } });

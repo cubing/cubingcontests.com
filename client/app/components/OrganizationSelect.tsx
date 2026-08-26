@@ -44,6 +44,9 @@ function OrganizationSelect({ organizations, isAdmin }: Props) {
         >
           {organization.logo && <img src={organization.logo} alt="Logo" className="tw:h-14" />}
           <span className="fs-5 text-body">{organization.name}</span>
+          {JSON.parse(organization.metadata).private && (
+            <span className="tw:icon-[tabler--eye-off] tw:text-2xl" title="Private" />
+          )}
         </button>
       ))}
     </div>

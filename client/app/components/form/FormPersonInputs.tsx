@@ -7,7 +7,7 @@ import { useCallback, useContext, useState } from "react";
 import useSWR from "swr";
 import Person from "~/app/components/Person.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
-import { C, IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
+import { C } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
 import { SwrKey } from "~/helpers/swr-keys.ts";
 import type { InputPerson, SpaceType } from "~/helpers/types.ts";
@@ -19,11 +19,6 @@ import {
   getPersonsByNameSF,
 } from "~/server/server-functions/person-server-functions.ts";
 import FormTextInput from "./FormTextInput.tsx";
-
-// TO-DO: use spaceType setting instead of IS_CC...
-const personInputTooltip = IS_CUBING_CONTESTS_INSTANCE
-  ? "Enter the competitor's ID or WCA ID, or part of their name"
-  : "Enter competitor's ID or part of their name";
 
 type Props = {
   title: string;
@@ -218,7 +213,13 @@ function FormPersonInputs({
             <FormTextInput
               id={`${title}_${inputIndex + 1}`}
               title={personNames.length > 1 ? `${title} ${inputIndex + 1}` : title}
-              tooltip={inputIndex === 0 ? personInputTooltip : undefined}
+              tooltip={
+                inputIndex !== 0
+                  ? undefined
+                  : spaceType === "speedcubing"
+                    ? "Enter the competitor's ID or WCA ID, or part of their name"
+                    : "Enter competitor's ID or part of their name"
+              }
               value={personName}
               setValue={(val: string) => changePersonName(inputIndex, val)}
               onKeyDown={(e: any) => onPersonKeyDown(inputIndex, e)}

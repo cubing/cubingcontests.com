@@ -1,6 +1,6 @@
 "use server";
 
-import { and, desc, eq, ilike, inArray, ne, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, ne, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { C } from "~/helpers/constants.ts";
 import type { GetOrCreatePersonObject } from "~/helpers/types.ts";
@@ -21,6 +21,7 @@ import { resultsTable } from "~/server/db/schema/results.ts";
 import { actionClient, RrActionError } from "~/server/safe-action.ts";
 import {
   getOrCreatePersonByWcaId,
+  getOrgDetails,
   getPersonExactMatchWcaId,
   logMessage,
   validateMaxTotalCompetitors,
@@ -67,18 +68,33 @@ export const getPersonsByNameSF = actionClient
   });
 
 export const getPersonProfilesSF = actionClient
-  .metadata({ auth: { useOrganization: true, orgPermissions: { persons: ["create", "update"] } } })
+  .metadata({ auth: null })
   .inputSchema(
     z.strictObject({
+      slug: z.string().nonempty(),
       search: z.string().max(100).default(""),
       approved: z.enum(["approved", "unapproved"]).optional(),
       regionCode: RegionCodeValidator.optional(),
       competitionId: z.string().optional(),
+      orderBy: z.enum(["id", "name"]).default("id"),
     }),
   )
   .action<SelectPerson[]>(
-    async ({ parsedInput: { search, approved, regionCode, competitionId }, ctx: { session } }) => {
-      const queryFilters: any[] = [eq(table.organizationId, session.organization!.id)];
+    async ({
+      parsedInput: { slug, search, approved, regionCode, competitionId, orderBy },
+      ctx: { session, httpHeaders },
+    }) => {
+      const organization = await getOrgDetails({ slug, session });
+      const { success: canManagePersons } = await auth.api
+        .hasPermission({
+          body: { permissions: { persons: ["create", "update"] } },
+          headers: httpHeaders,
+        })
+        .catch(() => ({ success: false }));
+      if (!canManagePersons && approved !== undefined)
+        throw new RrActionError("You are unauthorized to perform this action");
+
+      const queryFilters: any[] = [eq(table.organizationId, organization.id)];
 
       if (approved === "approved") queryFilters.push(eq(table.approved, true));
       else if (approved === "unapproved") queryFilters.push(eq(table.approved, false));
@@ -92,10 +108,7 @@ export const getPersonProfilesSF = actionClient
             .select({ id: sql`UNNEST(${resultsTable.personIds})` })
             .from(resultsTable)
             .where(
-              and(
-                eq(resultsTable.organizationId, session.organization!.id),
-                eq(resultsTable.competitionId, competitionId),
-              ),
+              and(eq(resultsTable.organizationId, organization.id), eq(resultsTable.competitionId, competitionId)),
             ),
         );
 
@@ -105,10 +118,7 @@ export const getPersonProfilesSF = actionClient
             .select({ id: sql`UNNEST(${contestsTable.organizerIds})` })
             .from(contestsTable)
             .where(
-              and(
-                eq(contestsTable.organizationId, session.organization!.id),
-                eq(contestsTable.competitionId, competitionId),
-              ),
+              and(eq(contestsTable.organizationId, organization.id), eq(contestsTable.competitionId, competitionId)),
             ),
         );
 
@@ -129,18 +139,20 @@ export const getPersonProfilesSF = actionClient
           const wcaIdQuery = eq(sql`LOWER(${table.wcaId})`, simplifiedSearch);
 
           // Search by the name of the creator of the person
-          const creatorQuery = inArray(
-            table.createdBy,
-            db
-              .select({ id: usersTable.id })
-              .from(usersTable)
-              .where(
-                or(
-                  and(...simplifiedParts.map((part) => ilike(sql`UNACCENT(${usersTable.name})`, part))),
-                  and(...simplifiedParts.map((part) => ilike(sql`UNACCENT(${usersTable.username})`, part))),
-                ),
-              ),
-          );
+          const creatorQuery = canManagePersons
+            ? inArray(
+                table.createdBy,
+                db
+                  .select({ id: usersTable.id })
+                  .from(usersTable)
+                  .where(
+                    or(
+                      and(...simplifiedParts.map((part) => ilike(sql`UNACCENT(${usersTable.name})`, part))),
+                      and(...simplifiedParts.map((part) => ilike(sql`UNACCENT(${usersTable.username})`, part))),
+                    ),
+                  ),
+              )
+            : undefined;
 
           queryFilters.push(or(nameQuery, locNameQuery, wcaIdQuery, creatorQuery));
         } else {
@@ -152,7 +164,7 @@ export const getPersonProfilesSF = actionClient
         .select()
         .from(table)
         .where(and(...queryFilters))
-        .orderBy(desc(table.id));
+        .orderBy(orderBy === "name" ? asc(table.name) : desc(table.id));
 
       return persons;
     },

@@ -4,7 +4,7 @@ import { faCheck, faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import debounce from "lodash/debounce";
-import { useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
 import { useCallback, useContext, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
@@ -48,6 +48,7 @@ type Props = {
 };
 
 function ManagePersonsScreen({ persons: initPersons, creators }: Props) {
+  const { slug }: { slug: string } = useParams();
   const searchParams = useSearchParams();
   const { user, session } = useSession();
   const { changeSuccessMessage, changeErrorMessages, resetMessages } = useContext(MainContext);
@@ -80,6 +81,7 @@ function ManagePersonsScreen({ persons: initPersons, creators }: Props) {
     ["person-profiles", search, approvedFilter, region, contest],
     async () => {
       const res = await getPersonProfilesSF({
+        slug,
         search,
         approved: approvedFilter || undefined,
         regionCode: region === C.notSelectedOption ? undefined : region,

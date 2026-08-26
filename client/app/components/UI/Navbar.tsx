@@ -177,6 +177,15 @@ function Navbar() {
                         Rankings
                       </Link>
                     </li>
+                    <li>
+                      <Link
+                        href={slugPath(organization.slug, "/persons")}
+                        onClick={collapseAll}
+                        className={`nav-link ${pathname === slugPath(organization.slug, "/persons") ? "active" : ""}`}
+                      >
+                        Persons
+                      </Link>
+                    </li>
                     {publicExportsEnabled && (
                       <li>
                         <Link

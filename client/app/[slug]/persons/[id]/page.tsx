@@ -11,12 +11,12 @@ import Tabs from "~/app/components/UI/Tabs.tsx";
 import { SwrKey } from "~/helpers/swr-keys.ts";
 import { type RecordCategory, RecordCategoryValues } from "~/helpers/types.ts";
 import { slugPath } from "~/helpers/utility-functions.ts";
+import { getPersonalRecords } from "~/server/server-only-functions/persons-functions.ts";
 import {
   getEnabledRecordCategories,
   getEventCategories,
   getEvents,
   getOrgDetails,
-  getPersonalRecords,
 } from "~/server/server-only-functions/server-only-functions.ts";
 
 const ParamsValidator = z.strictObject({
@@ -60,7 +60,12 @@ async function PersonPage({ params, searchParams }: Props) {
   const recordCategory: RecordCategory =
     category ?? (selectedEventCategory.videoBased ? "online" : enabledRecordCategories[0]);
 
-  const prsPromise = getPersonalRecords({ personId, eventCategoryId: selectedEventCategory.id, recordCategory });
+  const prsPromise = getPersonalRecords({
+    organizationId: organization.id,
+    personId,
+    eventCategoryId: selectedEventCategory.id,
+    recordCategory,
+  });
 
   return (
     <SWRConfig value={{ fallback: { [SwrKey.Events]: events } }}>

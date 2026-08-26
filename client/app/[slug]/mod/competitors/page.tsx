@@ -14,7 +14,14 @@ import {
   getSettingFromDb,
 } from "~/server/server-only-functions/server-only-functions.ts";
 
-async function CompetitorsPage() {
+type Props = {
+  params: Promise<{
+    slug: string;
+  }>;
+};
+
+async function CompetitorsPage({ params }: Props) {
+  const { slug } = await params;
   const { user, member, organization, httpHeaders } = await authorizeUser({
     useOrganization: true,
     orgPermissions: { persons: ["create", "update", "delete"] },
@@ -22,7 +29,7 @@ async function CompetitorsPage() {
 
   const [{ success: canApprovePersons }, personsRes, regions, spaceType] = await Promise.all([
     auth.api.hasPermission({ headers: httpHeaders, body: { permissions: { persons: ["approve"] } } }),
-    getPersonProfilesSF({}),
+    getPersonProfilesSF({ slug }),
     getRegions(organization!.id),
     getSettingFromDb({ key: "space-type", organizationId: organization!.id }),
   ]);

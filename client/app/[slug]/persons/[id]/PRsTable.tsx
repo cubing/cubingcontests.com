@@ -6,7 +6,7 @@ import EventTitle from "~/app/components/EventTitle.tsx";
 import { SwrKey } from "~/helpers/swr-keys.ts";
 import { getAlwaysShowDecimals, getFormattedResult } from "~/helpers/utility-functions.ts";
 import type { EventResponseWithCategory } from "~/server/db/schema/events.ts";
-import type { PersonalRecordPair } from "~/server/server-only-functions/server-only-functions.ts";
+import { PersonalRecordPair } from "~/server/server-only-functions/persons-functions.ts";
 
 type Props = {
   prsPromise: Promise<PersonalRecordPair[]>;
