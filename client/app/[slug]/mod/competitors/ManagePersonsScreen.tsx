@@ -2,7 +2,6 @@
 
 import { faCheck, faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import debounce from "lodash/debounce";
 import { useParams, useSearchParams } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
@@ -19,13 +18,14 @@ import Region from "~/app/components/Region.tsx";
 import ActiveInactiveIcon from "~/app/components/UI/ActiveInactiveIcon.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
+import PaginationControls from "~/app/components/UI/PaginationControls.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import { C } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
-import { useSession } from "~/helpers/hooks.ts";
+import { usePageNumber, useSession } from "~/helpers/hooks.ts";
 import { SwrKey } from "~/helpers/swr-keys.ts";
 import type { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
-import type { Creator, ListPageMode, SpaceType } from "~/helpers/types.ts";
+import type { Creator, ListPageMode, PaginatedData, SpaceType } from "~/helpers/types.ts";
 import { clientGetHasPermission, getActionError } from "~/helpers/utility-functions.ts";
 import type { ContestResponse } from "~/server/db/schema/contests.ts";
 import type { SelectPerson } from "~/server/db/schema/persons.ts";
@@ -43,16 +43,17 @@ const approvedFilterOptions: MultiChoiceOption[] = [
 ];
 
 type Props = {
-  persons: SelectPerson[];
+  personsData: PaginatedData<SelectPerson>;
   creators: Creator[];
 };
 
-function ManagePersonsScreen({ persons: initPersons, creators }: Props) {
+function ManagePersonsScreen({ personsData: initPersonsData, creators }: Props) {
   const { slug }: { slug: string } = useParams();
   const searchParams = useSearchParams();
   const { user, session } = useSession();
   const { changeSuccessMessage, changeErrorMessages, resetMessages } = useContext(MainContext);
 
+  const [page, setPage] = usePageNumber();
   const { executeAsync: deletePerson, isPending: isDeleting } = useAction(deletePersonSF);
   const { executeAsync: approvePerson, isPending: isApproving } = useAction(approvePersonSF);
   const { data: spaceType }: { data: SpaceType } = useSWR(SwrKey.SpaceType, { suspense: true });
@@ -69,16 +70,15 @@ function ManagePersonsScreen({ persons: initPersons, creators }: Props) {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [loadingId, setLoadingId] = useState("");
-  const parentRef = useRef<Element>(null);
   // Only used for admins. Is used to confirm approval of person with exact name and country match with a WCA person.
   const ignoredWcaMatches = useRef<{ personId: number; wcaMatches: string[] }>(undefined);
 
   const {
-    data: persons,
+    data: personsData,
     mutate,
     isValidating,
   } = useSWR(
-    ["person-profiles", search, approvedFilter, region, contest],
+    ["person-profiles", search, approvedFilter, region, contest, page],
     async () => {
       const res = await getPersonProfilesSF({
         slug,
@@ -86,16 +86,17 @@ function ManagePersonsScreen({ persons: initPersons, creators }: Props) {
         approved: approvedFilter || undefined,
         regionCode: region === C.notSelectedOption ? undefined : region,
         competitionId: contest?.competitionId,
+        page,
       });
 
       if (res.serverError || res.validationErrors) {
         changeErrorMessages([getActionError(res)]);
-        return [];
+        return { entries: [], totalEntries: 0 };
       }
 
       return res.data!;
     },
-    { fallbackData: initPersons, revalidateOnMount: false },
+    { fallbackData: initPersonsData, revalidateOnMount: false },
   );
 
   const creator = useMemo(
@@ -107,6 +108,7 @@ function ManagePersonsScreen({ persons: initPersons, creators }: Props) {
 
   const onSearchChange = (value: string) => {
     setSearchInput(value);
+    setPage(1);
     setSearchDebounced(value);
   };
 
@@ -114,6 +116,7 @@ function ManagePersonsScreen({ persons: initPersons, creators }: Props) {
     setSearchDebounced.cancel();
     setSearchInput("");
     setSearch("");
+    setPage(1);
     setApprovedFilter("");
     setRegion(C.notSelectedOption);
     setContestName("");
@@ -122,13 +125,6 @@ function ManagePersonsScreen({ persons: initPersons, creators }: Props) {
   };
 
   const buttonsDisabled = mode !== "view" || isDeleting || isApproving || isValidating;
-
-  const rowVirtualizer = useVirtualizer({
-    count: persons.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 44.7833, // UPDATE THIS IF THE TR HEIGHT IN PIXELS EVER CHANGES!
-    overscan: 20,
-  });
 
   const cancel = () => {
     setMode("view");
@@ -160,7 +156,7 @@ function ManagePersonsScreen({ persons: initPersons, creators }: Props) {
       changeErrorMessages([getActionError(res)]);
     } else {
       mutate(
-        persons.filter((p) => p.id !== person.id),
+        { entries: personsData.entries.filter((p) => p.id !== person.id), totalEntries: personsData.totalEntries - 1 },
         { revalidate: false },
       );
       changeSuccessMessage(`Successfully deleted ${person.name} (ID: ${person.id})`);
@@ -184,7 +180,7 @@ function ManagePersonsScreen({ persons: initPersons, creators }: Props) {
     } else {
       ignoredWcaMatches.current = undefined;
       mutate(
-        persons.map((p) => (p.id === person.id ? res.data! : p)),
+        { ...personsData, entries: personsData.entries.map((p) => (p.id === person.id ? res.data! : p)) },
         { revalidate: false },
       );
       changeSuccessMessage(`Successfully approved ${person.name} (ID: ${person.id})`);
@@ -196,7 +192,7 @@ function ManagePersonsScreen({ persons: initPersons, creators }: Props) {
       mutate();
     } else {
       mutate(
-        persons.map((p) => (p.id === person.id ? person : p)),
+        { ...personsData, entries: personsData.entries.map((p) => (p.id === person.id ? person : p)) },
         { revalidate: false },
       );
       setMode("view");
@@ -228,47 +224,48 @@ function ManagePersonsScreen({ persons: initPersons, creators }: Props) {
 
       {mode !== "add-once" && (
         <>
-          <div className="px-2">
-            <FiltersContainer className="mt-4 mb-3">
-              <FormTextInput
-                title="Search"
-                value={searchInput}
-                setValue={onSearchChange}
-                tooltip="Search by name, localized name, ID, or by the name or username of the creator."
-                oneLine
-              />
-              <FormRegionSelect regionCode={region} setRegionCode={setRegion} noTitle />
-              <FormSelect
-                title="Status"
-                options={approvedFilterOptions}
-                selected={approvedFilter}
-                setSelected={setApprovedFilter as any}
-                oneLine
-                style={{ maxWidth: "15rem" }}
-              />
-              <ContestSelect
-                contestName={contestName}
-                setContestName={setContestName}
-                setContest={setContest}
-                tooltip="Filter for persons who have either competed in or organized the competition"
-              />
-              {(searchInput || approvedFilter || region !== C.notSelectedOption || !!contest) && (
-                <Button onClick={resetFilters} className="btn-secondary btn-sm">
-                  Reset
-                </Button>
-              )}
-            </FiltersContainer>
-
-            <p className="mb-2">
-              Number of persons:&nbsp;<b>{isValidating ? "…" : persons.length}</b>
-            </p>
-          </div>
+          <FiltersContainer className="mt-4 mb-3 px-2">
+            <FormTextInput
+              title="Search"
+              value={searchInput}
+              setValue={onSearchChange}
+              tooltip="Search by name, localized name, ID, or by the name or username of the creator."
+              oneLine
+            />
+            <FormRegionSelect regionCode={region} setRegionCode={setRegion} noTitle />
+            <FormSelect
+              title="Status"
+              options={approvedFilterOptions}
+              selected={approvedFilter}
+              setSelected={setApprovedFilter as any}
+              oneLine
+              style={{ maxWidth: "15rem" }}
+            />
+            <ContestSelect
+              contestName={contestName}
+              setContestName={setContestName}
+              setContest={setContest}
+              tooltip="Filter for persons who have either competed in or organized the competition"
+            />
+            {(searchInput || approvedFilter || region !== C.notSelectedOption || !!contest) && (
+              <Button onClick={resetFilters} className="btn-secondary btn-sm">
+                Reset
+              </Button>
+            )}
+          </FiltersContainer>
 
           {isValidating ? (
             <Loading />
           ) : (
-            <div ref={parentRef as any} className="table-responsive mt-3 overflow-y-auto" style={{ height: "600px" }}>
-              <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
+            <>
+              {/* There's another one at the bottom */}
+              <PaginationControls
+                totalEntries={personsData.totalEntries}
+                disabled={isValidating}
+                className="tw:mb-3 px-2"
+              />
+
+              <div className="table-responsive overflow-y-auto">
                 <table className="table-hover table text-nowrap">
                   <thead>
                     <tr>
@@ -283,19 +280,11 @@ function ManagePersonsScreen({ persons: initPersons, creators }: Props) {
                     </tr>
                   </thead>
                   <tbody>
-                    {rowVirtualizer.getVirtualItems().map((virtualItem, index) => {
-                      if (persons.length === 0) return undefined;
-                      const person = persons[virtualItem.index];
+                    {personsData.entries.map((person) => {
                       const personCreator = creators.find((c) => c.userId === person.createdBy) ?? null;
 
                       return (
-                        <tr
-                          key={virtualItem.key as React.Key}
-                          style={{
-                            height: `${virtualItem.size}px`,
-                            transform: `translateY(${virtualItem.start - index * virtualItem.size}px)`,
-                          }}
-                        >
+                        <tr key={person.id}>
                           <td>{person.id}</td>
                           <td>
                             <Person person={person} noFlag />
@@ -373,7 +362,9 @@ function ManagePersonsScreen({ persons: initPersons, creators }: Props) {
                   </tbody>
                 </table>
               </div>
-            </div>
+
+              <PaginationControls totalEntries={personsData.totalEntries} disabled={isValidating} className="px-2" />
+            </>
           )}
         </>
       )}

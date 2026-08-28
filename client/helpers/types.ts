@@ -125,3 +125,8 @@ export type ContestApiKeyMetadata = {
 export type ContestApiKey = Pick<ApiKey, "id" | "name" | "rateLimitMax" | "createdAt" | "expiresAt"> & {
   metadata: ContestApiKeyMetadata;
 };
+
+export type PaginatedData<T> = {
+  entries: T[];
+  totalEntries: number;
+};

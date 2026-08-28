@@ -6,7 +6,7 @@ export const C = {
   rrDiscordServerLink: "https://discord.gg/YWbYh9AqHj",
   rrDaysBeforeStartingFreeTrial: 5,
   sourceCodeLink: "https://github.com/mintydev789/RecordRanks",
-  fetchDebounceTimeout: 650, // the timeout in ms between doing repetitive fetch requests that need to be limited
+  fetchDebounceTimeout: 600, // the timeout in ms between doing repetitive fetch requests that need to be limited
   maxRounds: 4,
   minResultsForThreeMoreRounds: 100,
   minResultsForTwoMoreRounds: 16,
@@ -27,6 +27,7 @@ export const C = {
   maxTotalMeetupEvents: 15, // this is hardcoded on the rules page
   maxSearchMatches: 6,
   maxRankings: 100_000,
+  defaultPageSize: 50,
   minSlugCharacters: 8,
   maxSlugCharacters: 24,
   wcaApiBaseUrl: "https://api.worldcubeassociation.org",

@@ -1,9 +1,9 @@
 "use server";
 
-import { and, asc, desc, eq, ilike, inArray, ne, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, inArray, ne, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { C } from "~/helpers/constants.ts";
-import type { GetOrCreatePersonObject } from "~/helpers/types.ts";
+import type { GetOrCreatePersonObject, PaginatedData } from "~/helpers/types.ts";
 import { fetchWcaPerson, getNameAndLocalizedName, getSimplifiedString } from "~/helpers/utility-functions.ts";
 import { type PersonDto, PersonValidator } from "~/helpers/validators/Person.ts";
 import { RegionCodeValidator, WcaIdValidator } from "~/helpers/validators/Validators.ts";
@@ -77,11 +77,12 @@ export const getPersonProfilesSF = actionClient
       regionCode: RegionCodeValidator.optional(),
       competitionId: z.string().optional(),
       orderBy: z.enum(["id", "name"]).default("id"),
+      page: z.number().int().min(1).default(1),
     }),
   )
-  .action<SelectPerson[]>(
+  .action<PaginatedData<SelectPerson>>(
     async ({
-      parsedInput: { slug, search, approved, regionCode, competitionId, orderBy },
+      parsedInput: { slug, search, approved, regionCode, competitionId, orderBy, page },
       ctx: { session, httpHeaders },
     }) => {
       const organization = await getOrgDetails({ slug, session });
@@ -160,13 +161,21 @@ export const getPersonProfilesSF = actionClient
         }
       }
 
-      const persons = await db
-        .select()
-        .from(table)
-        .where(and(...queryFilters))
-        .orderBy(orderBy === "name" ? asc(table.name) : desc(table.id));
+      const [persons, [{ total: totalEntries }]] = await Promise.all([
+        db
+          .select()
+          .from(table)
+          .where(and(...queryFilters))
+          .orderBy(orderBy === "name" ? asc(table.name) : desc(table.id))
+          .limit(C.defaultPageSize)
+          .offset((page - 1) * C.defaultPageSize),
+        db
+          .select({ total: count() })
+          .from(table)
+          .where(and(...queryFilters)),
+      ]);
 
-      return persons;
+      return { entries: persons, totalEntries: totalEntries ?? 0 };
     },
   );
 

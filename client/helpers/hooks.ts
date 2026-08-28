@@ -1,4 +1,5 @@
 import { useParams } from "next/navigation";
+import { parseAsInteger, useQueryState } from "nuqs";
 import useSWR from "swr";
 import { authClient } from "~/helpers/auth-client.ts";
 import type { FeaturesInfo, FullSession } from "~/helpers/types.ts";
@@ -34,6 +35,10 @@ export function useSession(): Partial<FullSession> {
   );
 
   return data;
+}
+
+export function usePageNumber() {
+  return useQueryState("p", parseAsInteger.withDefault(1));
 }
 
 export function useFeaturesInfo(): FeaturesInfo {

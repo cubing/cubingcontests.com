@@ -27,7 +27,7 @@ async function PersonsPage({ params }: Props) {
       <section>
         <h2 className="mb-4 text-center">Persons</h2>
 
-        <ToastMessages />
+        <ToastMessages className="mx-2" />
 
         <Suspense fallback={<Loading />}>
           <PersonsSearch slug={slug} />
