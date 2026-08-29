@@ -34,6 +34,7 @@ type Props = {
   disabled?: boolean;
   redirectToOnAddPerson?: string;
   showWcaId?: boolean;
+  forCompetitionId?: string;
 };
 
 function FormPersonInputs({
@@ -50,6 +51,7 @@ function FormPersonInputs({
   disabled,
   redirectToOnAddPerson = "",
   showWcaId = false,
+  forCompetitionId,
 }: Props) {
   const router = useRouter();
   const { slug }: { slug: string } = useParams();
@@ -72,9 +74,10 @@ function FormPersonInputs({
 
       const number = Number(value);
       if (!Number.isNaN(number)) {
-        const res = await getPersonById({ id: number });
+        const res = await getPersonById({ id: number, forCompetitionId });
 
         if (res.serverError || res.validationErrors) changeErrorMessages([getActionError(res)]);
+        else if (Array.isArray(res.data)) setMatchedPersons(res.data);
         else setMatchedPersons([res.data!]);
       } else if (spaceType === "speedcubing" && C.wcaIdRegexLoose.test(value)) {
         const res = await getOrCreateWcaPerson({ wcaId: value.trim().toUpperCase() });
@@ -92,7 +95,7 @@ function FormPersonInputs({
         }
       }
     }, C.fetchDebounceTimeout),
-    [matchSelection],
+    [matchSelection, forCompetitionId],
   );
 
   const isPending = isPendingPersonsByName || isPendingPersonById || isPendingWcaPerson;
@@ -251,7 +254,7 @@ function FormPersonInputs({
                       onMouseDown={() => selectPerson(inputIndex, matchIndex)}
                     >
                       {person !== null ? (
-                        <Person person={person} showWcaId showLocalizedName noLink />
+                        <Person person={person} showId showLocalizedName noLink />
                       ) : (
                         "(add new person)"
                       )}

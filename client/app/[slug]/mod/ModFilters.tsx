@@ -45,8 +45,9 @@ function ModFilters({ initOrganizerPerson, isAdminView, disabled }: Props) {
     if (res.serverError || res.validationErrors) {
       changeErrorMessages([getActionError(res)]);
     } else {
-      setPersons([res.data!]);
-      setPersonNames([res.data!.name]);
+      const person = res.data as PersonResponse;
+      setPersons([person]);
+      setPersonNames([person.name]);
       setFilters({ organizerPersonId: newPersonId });
     }
   };

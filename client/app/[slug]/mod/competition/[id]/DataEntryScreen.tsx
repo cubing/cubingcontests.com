@@ -272,7 +272,7 @@ function DataEntryScreen({
           } else {
             const res = await getPersonById({ id: firstUnusedPersonId });
             if (res.serverError || res.validationErrors) firstUnusedPersonId++;
-            else resultPersons.push(res.data!);
+            else resultPersons.push(res.data as PersonResponse);
           }
         }
         firstUnusedPersonId++;
@@ -335,6 +335,7 @@ function DataEntryScreen({
             disabled={!round.open || resultUnderEdit !== null || isPending}
             display="default"
             showWcaId
+            forCompetitionId={contest.competitionId}
           />
           <div className="tw:mb-1 tw:flex tw:flex-col tw:gap-2">
             {attempts.map((attempt: Attempt, i: number) => (

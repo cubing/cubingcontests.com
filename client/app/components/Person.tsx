@@ -9,7 +9,7 @@ import Region from "./Region.tsx";
 
 type Props = {
   person: Pick<PersonResponse, "id" | "name" | "localizedName" | "regionCode" | "wcaId"> | undefined;
-  showWcaId?: boolean;
+  showId?: boolean;
   showLocalizedName?: boolean; // showWcaId overrides this
   noFlag?: boolean;
   noLink?: boolean;
@@ -18,7 +18,7 @@ type Props = {
 
 function Person({
   person,
-  showWcaId = false,
+  showId = false,
   showLocalizedName = false,
   noFlag = false,
   noLink = false,
@@ -29,18 +29,26 @@ function Person({
   if (!person) return <span className="text-danger">Not found</span>;
 
   let displayText = person.name;
-  if (showWcaId && person.wcaId) displayText += ` [${person.wcaId}]`;
-  else if (showLocalizedName && person.localizedName) displayText += ` (${person.localizedName})`;
+  if (!showId && showLocalizedName && person.localizedName) displayText += ` (${person.localizedName})`;
 
   return (
-    <span className="tw:inline-flex tw:items-center tw:gap-2">
-      {noLink ? (
-        displayText
-      ) : (
-        <Link href={slugPath(slug, `/persons/${person.id}`)} prefetch={false}>
-          {displayText}
-        </Link>
-      )}
+    <span className="tw:inline-flex tw:items-center tw:gap-2.5">
+      <div>
+        {noLink ? (
+          <span>{displayText}</span>
+        ) : (
+          <Link href={slugPath(slug, `/persons/${person.id}`)} prefetch={false}>
+            {displayText}
+          </Link>
+        )}
+
+        {showId && (
+          <div className="tw:mt-1 tw:text-nowrap tw:font-mono text-muted tw:text-xs">
+            [{person.id}
+            {person.wcaId ? ` | ${person.wcaId}` : ""}]
+          </div>
+        )}
+      </div>
 
       {!noFlag && <Region regionCode={person.regionCode} noText />}
 

@@ -32,15 +32,48 @@ export const getPersonByIdSF = actionClient
   .inputSchema(
     z.strictObject({
       id: z.int().min(1),
+      forCompetitionId: z.string().nonempty().optional(),
     }),
   )
-  .action<PersonResponse>(async ({ parsedInput: { id }, ctx: { session } }) => {
+  .action<PersonResponse | PersonResponse[]>(async ({ parsedInput: { id, forCompetitionId }, ctx: { session } }) => {
     const [person] = await db
       .select(personsPublicCols)
       .from(table)
       .where(and(eq(table.organizationId, session.organization!.id), eq(table.id, id)));
 
     if (!person) throw new RrActionError(`Person with ID ${id} not found`);
+
+    if (forCompetitionId) {
+      const [contest] = await db
+        .select({ type: contestsTable.type })
+        .from(contestsTable)
+        .where(
+          and(
+            eq(contestsTable.organizationId, session.organization!.id),
+            eq(contestsTable.competitionId, forCompetitionId),
+          ),
+        );
+      if (!contest) throw new RrActionError("Competition not found");
+
+      if (contest.type === "wca-comp") {
+        const wcifRes = await fetch(`${C.wcaApiBaseUrl}/competitions/${forCompetitionId}/wcif/public`);
+        if (!wcifRes.ok) throw new RrActionError("WCA competition not found");
+
+        const wcif = z
+          .object({ persons: z.object({ registrantId: z.int().nullable(), wcaId: z.string().nullable() }).array() })
+          .parse(await wcifRes.json());
+        const wcifPerson = wcif.persons.find((p) => p.registrantId === id);
+        if (wcifPerson?.wcaId) {
+          const { person: wcaRegistrantPerson } = await getOrCreatePersonByWcaId(wcifPerson.wcaId, {
+            creatorUserId: session.user.id,
+            organization: session.organization!,
+          });
+          return [wcaRegistrantPerson, person];
+        }
+      }
+
+      return [person];
+    }
 
     return person;
   });

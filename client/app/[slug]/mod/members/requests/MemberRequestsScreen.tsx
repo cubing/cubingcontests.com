@@ -84,7 +84,7 @@ function MemberRequestsScreen({ memberRequests: initMemberRequests }: Props) {
                   <td>
                     {mr.requestedPerson && (
                       <div className="d-flex gap-3 align-items-center">
-                        <Person person={mr.requestedPerson} showWcaId showWcaLink />
+                        <Person person={mr.requestedPerson} showId showWcaLink />
                         <ActiveInactiveIcon isActive={mr.requestedPerson.approved} />
                       </div>
                     )}

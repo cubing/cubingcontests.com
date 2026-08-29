@@ -296,6 +296,7 @@ function ContestForm({
     if (res.serverError || res.validationErrors) {
       changeErrorMessages([getActionError(res)]);
     } else {
+      const currentMemberPerson = res.data as PersonResponse;
       setType(mockContestType);
       setCity("Singapore");
       setRegionCode("SG");
@@ -305,8 +306,8 @@ function ContestForm({
       setLongitude(103.845409);
       const tz = "Asia/Singapore";
       setTimezone(tz);
-      setOrganizerNames([res.data!.name, ""]);
-      setOrganizers([res.data!, null]);
+      setOrganizerNames([currentMemberPerson.name, ""]);
+      setOrganizers([currentMemberPerson, null]);
       setContact("contact@example.com");
       setDescription("THIS IS A MOCK CONTEST FOR TESTING!");
       setCompetitorLimit(100);
