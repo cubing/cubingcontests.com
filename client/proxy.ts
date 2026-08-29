@@ -9,30 +9,21 @@ function log(url: URL) {
 
 export function proxy(request: NextRequest) {
   const url = new URL(request.url);
+  const routes =
+    "about|competitions|export|moderator-instructions|blog|rankings|records|persons|rules|video-based-results";
 
   if (process.env.NEXT_PUBLIC_MULTITENANCY_ENABLED === "true") {
-    const isLoggablePage =
-      /^\/[^/]+(\/|\/(about|competitions|export|moderator-instructions|blog|rankings|records|rules|video-based-results)(\/.*)?)?$/.test(
-        url.pathname,
-      );
+    const isLoggablePage = new RegExp(`^/[^/]+(/|/(${routes})(/.*)?)?$`).test(url.pathname);
 
     if (isLoggablePage) log(url);
   } else {
-    const isLoggablePage =
-      url.pathname === "/" ||
-      /^\/(about|competitions|export|moderator-instructions|blog|rankings|records|rules|video-based-results)(\/.*)?$/.test(
-        url.pathname,
-      );
+    const isLoggablePage = url.pathname === "/" || new RegExp(`^/(${routes})(/.*)?$`).test(url.pathname);
 
     if (isLoggablePage) log(url);
 
     // Single tenancy routing support
 
-    const isPathWithSlug =
-      url.pathname === "/" ||
-      /^\/(about|competitions|export|mod|moderator-instructions|blog|rankings|records|rules|video-based-results)(\/.*)?$/.test(
-        url.pathname,
-      );
+    const isPathWithSlug = url.pathname === "/" || new RegExp(`^/(mod|${routes})(/.*)?$`).test(url.pathname);
 
     if (isPathWithSlug) {
       return NextResponse.rewrite(request.url.replace(url.host, `${url.host}/default`));
