@@ -693,7 +693,7 @@ export async function getOrCreatePersonByWcaId(
 }
 
 export async function getPersonsForExternalDeviceDataEntry(
-  { registrantId, wcaId }: Pick<EnterAttemptPayloadDto, "registrantId" | "wcaId">,
+  { personId, wcaId }: Pick<EnterAttemptPayloadDto, "personId" | "wcaId">,
   {
     creatorUserId,
     organization,
@@ -713,12 +713,12 @@ export async function getPersonsForExternalDeviceDataEntry(
     }
 
     return persons;
-  } else if (typeof registrantId === "number") {
-    const person = await db.query.persons.findFirst({ where: { organizationId: organization.id, id: registrantId } });
-    if (!person) throw new Error(`Person with ID ${registrantId} not found`);
+  } else if (typeof personId === "number") {
+    const person = await db.query.persons.findFirst({ where: { organizationId: organization.id, id: personId } });
+    if (!person) throw new Error(`Person with ID ${personId} not found`);
     return [person];
   } else {
-    const personIds: number[] = registrantId!.split(",").map((part) => parseInt(part, 10));
+    const personIds: number[] = personId!.split(",").map((part) => parseInt(part, 10));
     const persons = await db.query.persons.findMany({
       where: { organizationId: organization.id, id: { in: personIds } },
     });

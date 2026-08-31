@@ -7,9 +7,9 @@ export const EnterAttemptPayloadValidator = z
     competitionId: z.string().nonempty(),
     eventId: z.string().nonempty(),
     roundNumber: RoundNumberValidator,
-    registrantId: z
+    personId: z
       .union([z.int().min(1), z.string().regex(/^[0-9]+(,[0-9]+)*$/)], {
-        error: "registrantId must be an integer or a string containing comma-separated integers",
+        error: "personId must be an integer or a string containing comma-separated integers",
       })
       .optional(),
     wcaId: z
@@ -20,11 +20,11 @@ export const EnterAttemptPayloadValidator = z
     attemptResult: z.int().refine((val) => val !== 0, { error: "You cannot submit an empty attempt" }),
   })
   .superRefine((val, ctx) => {
-    if ((val.registrantId === undefined) === (val.wcaId === undefined)) {
+    if ((val.personId === undefined) === (val.wcaId === undefined)) {
       ctx.addIssue({
         code: "custom",
-        message: "Please provide either a registrantId or a wcaId (but not both)",
-        input: val.registrantId,
+        message: "Please provide either a personId or a wcaId (but not both)",
+        input: val.personId,
       });
     }
   });
