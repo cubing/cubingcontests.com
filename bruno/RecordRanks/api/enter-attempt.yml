@@ -16,7 +16,7 @@ http:
         "competitionId": "MyCompetition2023",
         "eventId": "fto",
         "roundNumber": 1,
-        "registrantId": 1,
+        "personId": 1,
         "attemptNumber": 1,
         "attemptResult": 1025
       }
