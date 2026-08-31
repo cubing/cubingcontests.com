@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { SWRConfig } from "swr";
 import z from "zod";
@@ -11,6 +12,7 @@ import Tabs from "~/app/components/UI/Tabs.tsx";
 import { SwrKey } from "~/helpers/swr-keys.ts";
 import { type RecordCategory, RecordCategoryValues } from "~/helpers/types.ts";
 import { slugPath } from "~/helpers/utility-functions.ts";
+import { db } from "~/server/db/provider.ts";
 import { getPersonalRecords } from "~/server/server-only-functions/persons-functions.ts";
 import {
   getEnabledRecordCategories,
@@ -32,6 +34,23 @@ type Props = {
   params: Promise<z.infer<typeof ParamsValidator>>;
   searchParams: Promise<z.infer<typeof SearchParamsValidator>>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug, id } = await params;
+  const personId = parseInt(id, 10);
+
+  const person = await db.query.persons.findFirst({
+    columns: { name: true },
+    where: { organization: { slug }, id: personId },
+  });
+
+  return {
+    title: person?.name ?? "Person Profile",
+    openGraph: process.env.OG_IMAGES_URL
+      ? { images: [`${process.env.OG_IMAGES_URL}/${slug}/persons/${id}`] }
+      : undefined,
+  };
+}
 
 async function PersonPage({ params, searchParams }: Props) {
   const { slug, id } = ParamsValidator.parse(await params);

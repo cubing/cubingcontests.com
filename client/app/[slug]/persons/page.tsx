@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { SWRConfig } from "swr";
 import z from "zod";
@@ -14,6 +15,18 @@ const ParamsValidator = z.strictObject({
 type Props = {
   params: Promise<z.infer<typeof ParamsValidator>>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+
+  return {
+    title: "Persons",
+    description: process.env.METADATA_PERSONS_DESCRIPTION,
+    openGraph: process.env.OG_IMAGES_URL
+      ? { images: [`${process.env.OG_IMAGES_URL}/${slug}/persons`] }
+      : undefined,
+  };
+}
 
 async function PersonsPage({ params }: Props) {
   const { slug } = ParamsValidator.parse(await params);
