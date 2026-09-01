@@ -100,7 +100,7 @@ async function ModeratorDashboardPage({ params }: Props) {
           <Link href={slugPath(slug, "/mod/competitors")} prefetch={false} className="btn btn-warning btn-sm">
             Manage Persons
           </Link>
-          {isAdminView && (
+          {!maxMonthlyContestsReached && !isEventsListEmpty && (
             <Link href={slugPath(slug, "/mod/api-keys")} prefetch={false} className="btn btn-warning btn-sm">
               API Keys
             </Link>

@@ -457,7 +457,6 @@ export const createApiKeySF = actionClient
     auth: {
       useOrganization: true,
       orgPermissions: { competitions: ["create", "update"], meetups: ["create", "update"] },
-      orgRole: "admin", // this is temporary
     },
   })
   .inputSchema(
