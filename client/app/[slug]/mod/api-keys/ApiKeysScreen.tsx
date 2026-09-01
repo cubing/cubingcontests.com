@@ -4,13 +4,12 @@ import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useAction } from "next-safe-action/hooks";
 import { useContext, useState } from "react";
+import ContestSelect from "~/app/components/form/ContestSelect.tsx";
 import Form from "~/app/components/form/Form.tsx";
-import FormSelect from "~/app/components/form/FormSelect.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import { authClient } from "~/helpers/auth-client.ts";
 import { MainContext } from "~/helpers/contexts.ts";
-import type { MultiChoiceOption } from "~/helpers/types/MultiChoiceOption.ts";
 import type { ContestApiKey, ListPageMode } from "~/helpers/types.ts";
 import { getActionError, getFormattedDate } from "~/helpers/utility-functions.ts";
 import type { ContestResponse } from "~/server/db/schema/contests.ts";
@@ -28,27 +27,21 @@ function ManageApiKeysScreen({ contests, apiKeys: initApiKeys }: Props) {
 
   const [mode, setMode] = useState<ListPageMode>("view");
   const [apiKeys, setApiKeys] = useState(initApiKeys);
-  const [selectedContestId, setSelectedContestId] = useState<string | null>(null);
+  const [contestName, setContestName] = useState("");
+  const [contest, setContest] = useState<ContestResponse | null>(null);
   const [keyName, setKeyName] = useState("");
   const [loadingId, setLoadingId] = useState("");
 
   const isPending = isCreating || Boolean(loadingId);
-  const contestOptions: MultiChoiceOption[] = [
-    { value: null, label: "Select a contest" },
-    ...contests.map((contest) => ({
-      value: contest.competitionId,
-      label: contest.name,
-    })),
-  ];
 
   const handleCreateApiKey = async () => {
-    if (selectedContestId === null) {
+    if (!contest) {
       changeErrorMessages(["Please select a contest"]);
       return;
     }
 
     resetMessages();
-    const res = await createApiKey({ competitionId: selectedContestId, keyName });
+    const res = await createApiKey({ competitionId: contest.competitionId, keyName });
 
     if (res.serverError || res.validationErrors) {
       changeErrorMessages([getActionError(res)]);
@@ -57,7 +50,8 @@ function ManageApiKeysScreen({ contests, apiKeys: initApiKeys }: Props) {
         `API key created successfully! If you lose the key, you can delete it and generate a new one on this page.\n\n${res.data!.key}`,
       );
       setMode("view");
-      setSelectedContestId("");
+      setContestName("");
+      setContest(null);
       setApiKeys((prev) => [res.data!.apiKey, ...prev]);
     }
   };
@@ -65,7 +59,8 @@ function ManageApiKeysScreen({ contests, apiKeys: initApiKeys }: Props) {
   const onCreateKey = () => {
     resetMessages();
     setMode("add");
-    setSelectedContestId("");
+    setContestName("");
+    setContest(null);
     setKeyName("");
   };
 
@@ -105,11 +100,10 @@ function ManageApiKeysScreen({ contests, apiKeys: initApiKeys }: Props) {
         >
           <div className="row">
             <div className="col-12 col-md-6 mb-3">
-              <FormSelect
-                title="Contest"
-                options={contestOptions}
-                selected={selectedContestId}
-                setSelected={(val) => setSelectedContestId(val as string)}
+              <ContestSelect
+                contestName={contestName}
+                setContestName={setContestName}
+                setContest={setContest}
                 disabled={isPending}
               />
             </div>
