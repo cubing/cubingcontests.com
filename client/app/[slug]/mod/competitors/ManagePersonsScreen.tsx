@@ -246,6 +246,7 @@ function ManagePersonsScreen({ personsData: initPersonsData, creators }: Props) 
               setContestName={setContestName}
               setContest={setContest}
               tooltip="Filter for persons who have either competed in or organized the competition"
+              oneLine
             />
             {(searchInput || approvedFilter || region !== C.notSelectedOption || !!contest) && (
               <Button onClick={resetFilters} className="btn-secondary btn-sm">

@@ -18,10 +18,11 @@ type Props = {
   setContestName: (val: string) => void;
   setContest: (val: ContestResponse | null) => void;
   tooltip?: string;
+  oneLine?: boolean;
   disabled?: boolean;
 };
 
-function ContestSelect({ contestName, setContestName, setContest, tooltip, disabled }: Props) {
+function ContestSelect({ contestName, setContestName, setContest, tooltip, oneLine = false, disabled = false }: Props) {
   const { changeErrorMessages, resetMessages } = useContext(MainContext);
 
   const { executeAsync: getContestsByName, isPending } = useAction(getContestsByNameSF);
@@ -101,7 +102,7 @@ function ContestSelect({ contestName, setContestName, setContest, tooltip, disab
         onFocus={() => changeIsFocusedInput(true)}
         onBlur={() => changeIsFocusedInput(false)}
         disabled={disabled}
-        oneLine
+        oneLine={oneLine}
       />
 
       {isFocusedInput && contestName && (
