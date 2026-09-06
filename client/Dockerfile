@@ -23,7 +23,7 @@ WORKDIR /app
 ENV CI="true"
 
 # Copy package-related files first to leverage Docker's caching mechanism
-COPY package.json5 pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # Install project dependencies with frozen lockfile for reproducible builds
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
