@@ -10,6 +10,7 @@ import EventTitle from "~/app/components/EventTitle.tsx";
 import RecordCategoriesButtonGroup from "~/app/components/RecordCategoriesButtonGroup.tsx";
 import RegionSelect from "~/app/components/RegionSelect.tsx";
 import Loading from "~/app/components/UI/Loading.tsx";
+import LoadingError from "~/app/components/UI/LoadingError.tsx";
 import Tooltip from "~/app/components/UI/Tooltip.tsx";
 import { IS_CUBING_CONTESTS_INSTANCE } from "~/helpers/constants.ts";
 import { roundFormats } from "~/helpers/roundFormats.ts";
@@ -65,8 +66,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 async function RankingsPage({ params, searchParams }: Props) {
-  const { slug, eventId, type } = ParamsValidator.parse(await params);
-  const { show, category, region, topN } = SearchParamsValidator.parse(await searchParams);
+  const parsedParams = ParamsValidator.safeParse(await params);
+  const parsedSearchParams = SearchParamsValidator.safeParse(await searchParams);
+  if (!parsedParams.success || !parsedSearchParams.success) return <LoadingError />;
+  const { slug, eventId, type } = parsedParams.data;
+  const { show, category, region, topN } = parsedSearchParams.data;
 
   const urlSearchParams = new URLSearchParams(omitBy({ show, category, region, topN } as any, (val) => !val));
   const urlSearchParamsWithoutShow = new URLSearchParams(omitBy({ category, region, topN } as any, (val) => !val));

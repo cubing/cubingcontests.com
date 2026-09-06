@@ -11,7 +11,13 @@ export function useSession(): Partial<FullSession> {
   const { data: session } = authClient.useSession();
 
   const { data } = useSWR(
-    ["user-full-session", slug, session],
+    [
+      "user-full-session",
+      slug,
+      session?.session.id,
+      session?.session.activeOrganizationId,
+      session?.user.communicationsAgreed, // this is necessary for changing the value on the user settings page
+    ],
     async () => {
       const [memberRes, orgDetailsRes] = await Promise.all([
         session?.session.activeOrganizationId ? authClient.organization.getActiveMember() : undefined,

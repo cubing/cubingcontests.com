@@ -1,4 +1,3 @@
-import { headers } from "next/headers";
 import LoadingError from "~/app/components/UI/LoadingError.tsx";
 import ToastMessages from "~/app/components/UI/ToastMessages.tsx";
 import { auth } from "~/server/auth.ts";
@@ -7,10 +6,10 @@ import { authorizeUser } from "~/server/server-only-functions/server-only-functi
 import ManageUsersScreen from "./ManageUsersScreen.tsx";
 
 async function ManageUsersPage() {
-  await authorizeUser({ useOrganization: false, permissions: { user: ["list"] } });
+  const { httpHeaders } = await authorizeUser({ useOrganization: false, permissions: { user: ["list"] } });
 
   const [{ users }, accounts] = await Promise.all([
-    auth.api.listUsers({ headers: await headers(), query: { sortBy: "createdAt", sortDirection: "desc" } }),
+    auth.api.listUsers({ query: { sortBy: "createdAt", sortDirection: "desc", limit: 10_000 }, headers: httpHeaders }),
     db.query.accounts.findMany({ columns: { userId: true, providerId: true } }),
   ]);
 

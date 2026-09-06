@@ -73,86 +73,79 @@ async function ModeratorDashboardPage({ params }: Props) {
   const showTodos = showBillingTodo || showLinkPersonTodo || showAddEventsTodo || showCreateContestTodo;
 
   return (
-    <section>
-      <h2 className="mx-2 mb-4 text-center">Dashboard</h2>
+    <SWRConfig value={{ fallback: { [SwrKey.SpaceType]: spaceType, [SwrKey.Regions]: regions } }}>
+      <section>
+        <h2 className="mx-2 mb-4 text-center">Dashboard</h2>
 
-      <div className="px-2">
-        <ToastMessages />
+        <div className="px-2">
+          <ToastMessages />
 
-        {showTodos && (
-          <SpaceTodoList
-            organization={organization!}
-            showBillingTodo={showBillingTodo}
-            showLinkPersonTodo={showLinkPersonTodo}
-            showAddEventsTodo={showAddEventsTodo}
-            showCreateContestTodo={showCreateContestTodo}
-          />
-        )}
-
-        {maxMonthlyContestsReached && <p className="fw-bold text-danger">{C.message.maxMonthlyContestsReached}</p>}
-
-        <div className="d-flex fs-5 column-gap-2 column-gap-xl-3 row-gap-2 my-3 flex-wrap">
-          {!maxMonthlyContestsReached && !isEventsListEmpty && (
-            <Link href={slugPath(slug, "/mod/competition")} prefetch={false} className="btn btn-success btn-sm">
-              Create New Competition
-            </Link>
+          {showTodos && (
+            <SpaceTodoList
+              organization={organization!}
+              showBillingTodo={showBillingTodo}
+              showLinkPersonTodo={showLinkPersonTodo}
+              showAddEventsTodo={showAddEventsTodo}
+              showCreateContestTodo={showCreateContestTodo}
+            />
           )}
-          <Link href={slugPath(slug, "/mod/competitors")} prefetch={false} className="btn btn-warning btn-sm">
-            Manage Persons
-          </Link>
-          {!maxMonthlyContestsReached && !isEventsListEmpty && (
-            <Link href={slugPath(slug, "/mod/api-keys")} prefetch={false} className="btn btn-warning btn-sm">
-              API Keys
+
+          {maxMonthlyContestsReached && <p className="fw-bold text-danger">{C.message.maxMonthlyContestsReached}</p>}
+
+          <div className="d-flex fs-5 column-gap-2 column-gap-xl-3 row-gap-2 my-3 flex-wrap">
+            {!maxMonthlyContestsReached && !isEventsListEmpty && (
+              <Link href={slugPath(slug, "/mod/competition")} prefetch={false} className="btn btn-success btn-sm">
+                Create New Competition
+              </Link>
+            )}
+            <Link href={slugPath(slug, "/mod/competitors")} prefetch={false} className="btn btn-warning btn-sm">
+              Manage Persons
             </Link>
-          )}
-          {isAdminView && (
-            <>
-              <Link href={slugPath(slug, "/mod/members")} prefetch={false} className="btn btn-warning btn-sm">
-                Manage Members
+            {!maxMonthlyContestsReached && !isEventsListEmpty && (
+              <Link href={slugPath(slug, "/mod/api-keys")} prefetch={false} className="btn btn-warning btn-sm">
+                API Keys
               </Link>
-              <Link href={slugPath(slug, "/mod/events")} prefetch={false} className="btn btn-secondary btn-sm">
-                Configure Events
-              </Link>
-              <Link
-                href={slugPath(slug, "/mod/records-configuration")}
-                prefetch={false}
-                className="btn btn-secondary btn-sm"
-              >
-                Configure Records
-              </Link>
-              {IS_RR_INSTANCE && isOwner && (
-                <Link href={slugPath(slug, "/billing")} prefetch={false} className="btn btn-secondary btn-sm">
-                  Billing
+            )}
+            {isAdminView && (
+              <>
+                <Link href={slugPath(slug, "/mod/members")} prefetch={false} className="btn btn-warning btn-sm">
+                  Manage Members
                 </Link>
-              )}
-            </>
-          )}
-          {scorecardsServiceLink && scorecardsLinkEnabled === "true" && (
-            <a href={scorecardsServiceLink} target="_blank" rel="noopener" className="btn btn-secondary btn-sm">
-              Scorecards
-            </a>
-          )}
-          <DocsButton />
-          <SocialLinkButton link={discordServerLink} logo="discord" className="btn-sm">
-            Discord server
-          </SocialLinkButton>
-          {organization!.metadata.showDonationLinks && <DonateButton />}
+                <Link href={slugPath(slug, "/mod/events")} prefetch={false} className="btn btn-secondary btn-sm">
+                  Configure Events
+                </Link>
+                <Link
+                  href={slugPath(slug, "/mod/records-configuration")}
+                  prefetch={false}
+                  className="btn btn-secondary btn-sm"
+                >
+                  Configure Records
+                </Link>
+                {IS_RR_INSTANCE && isOwner && (
+                  <Link href={slugPath(slug, "/billing")} prefetch={false} className="btn btn-secondary btn-sm">
+                    Billing
+                  </Link>
+                )}
+              </>
+            )}
+            {scorecardsServiceLink && scorecardsLinkEnabled === "true" && (
+              <a href={scorecardsServiceLink} target="_blank" rel="noopener" className="btn btn-secondary btn-sm">
+                Scorecards
+              </a>
+            )}
+            <DocsButton />
+            <SocialLinkButton link={discordServerLink} logo="discord" className="btn-sm">
+              Discord server
+            </SocialLinkButton>
+            {organization!.metadata.showDonationLinks && <DonateButton />}
+          </div>
         </div>
-      </div>
 
-      <SWRConfig
-        value={{
-          fallback: {
-            [SwrKey.SpaceType]: spaceType,
-            [SwrKey.Regions]: regions,
-          },
-        }}
-      >
         <Suspense fallback={<Loading />}>
           <ModDashboardScreen isAdminView={isAdminView} />
         </Suspense>
-      </SWRConfig>
-    </section>
+      </section>
+    </SWRConfig>
   );
 }
 
