@@ -1,6 +1,14 @@
 @import "tailwindcss" prefix(tw);
 @plugin "@iconify/tailwind4";
 
+/* This is to override Tailwind's behavior that sets these to none by default, whereas Bootstrap expects these to be left as browser defaults */
+ul {
+  list-style: disc;
+}
+ol {
+  list-style: decimal;
+}
+
 * {
   /* 768px corresponds to Bootstrap's md size */
   --rr-md-width: 768px;
