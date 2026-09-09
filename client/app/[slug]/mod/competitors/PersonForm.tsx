@@ -4,17 +4,21 @@ import pick from "lodash/pick";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
 import { useContext, useEffect, useRef, useState } from "react";
+import useSWR from "swr";
 import CreatorDetails from "~/app/components/CreatorDetails.tsx";
 import Form from "~/app/components/form/Form.tsx";
 import FormCheckbox from "~/app/components/form/FormCheckbox.tsx";
 import FormPersonInputs from "~/app/components/form/FormPersonInputs.tsx";
 import FormRegionSelect from "~/app/components/form/FormRegionSelect.tsx";
 import FormTextInput from "~/app/components/form/FormTextInput.tsx";
+import Person from "~/app/components/Person.tsx";
 import Button from "~/app/components/UI/Button.tsx";
 import { C } from "~/helpers/constants.ts";
 import { MainContext } from "~/helpers/contexts.ts";
+import { useSession } from "~/helpers/hooks.ts";
+import { SwrKey } from "~/helpers/swr-keys.ts";
 import type { Creator, InputPerson } from "~/helpers/types.ts";
-import { getActionError } from "~/helpers/utility-functions.ts";
+import { clientGetHasPermission, getActionError } from "~/helpers/utility-functions.ts";
 import type { PersonDto } from "~/helpers/validators/Person.ts";
 import type { PersonResponse, SelectPerson } from "~/server/db/schema/persons.ts";
 import {
@@ -31,8 +35,7 @@ type Props = {
   onSubmitError?: () => void;
   onCancel?: () => void;
   wcaIdInputHidden?: boolean;
-  canApprove?: boolean;
-  onMerged?: (survivor: SelectPerson, deletedId: number) => void;
+  onMerged?: (mergedPerson: SelectPerson, deletedPersonId: number) => void;
 };
 
 function PersonForm({
@@ -42,11 +45,11 @@ function PersonForm({
   onSubmitError,
   onCancel,
   wcaIdInputHidden,
-  canApprove,
   onMerged,
 }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { session } = useSession();
   const { changeErrorMessages, changeSuccessMessage, resetMessages } = useContext(MainContext);
 
   const { executeAsync: createPerson, isPending: isCreating } = useAction(createPersonSF);
@@ -54,6 +57,10 @@ function PersonForm({
     useAction(getOrCreatePersonByWcaIdSF);
   const { executeAsync: updatePerson, isPending: isUpdating } = useAction(updatePersonSF);
   const { executeAsync: mergePersons, isPending: isMerging } = useAction(mergePersonsSF);
+  const { data: canApprovePersons } = useSWR(
+    session?.activeOrganizationId ? [SwrKey.CanApprovePersons, session] : null,
+    () => clientGetHasPermission({ persons: ["approve"] }),
+  );
   const [name, setName] = useState(personUnderEdit?.name ?? "");
   const [localizedName, setLocalizedName] = useState(personUnderEdit?.localizedName ?? "");
   const [wcaId, setWcaId] = useState(personUnderEdit?.wcaId ?? "");
@@ -65,7 +72,7 @@ function PersonForm({
 
   // Merge state
   const [showMergeUI, setShowMergeUI] = useState(false);
-  const [mergePersonsList, setMergePersonsList] = useState<InputPerson[]>([null]);
+  const [mergePersonsList, setMergePersonsList] = useState<InputPerson[]>([null]); // this will always have a single element
   const [mergePersonNames, setMergePersonNames] = useState<string[]>([""]);
 
   const isPending = isCreating || isGettingOrCreatingWcaPerson || isUpdating || isMerging;
@@ -168,31 +175,33 @@ function PersonForm({
   };
 
   const handleMerge = async () => {
-    const targetPerson = mergePersonsList[0];
-    if (!targetPerson) {
+    const personToMergeWith = mergePersonsList[0];
+    if (!personToMergeWith) {
       changeErrorMessages(["Please select a person to merge with"]);
       return;
     }
-    if (targetPerson.id === personUnderEdit!.id) {
-      changeErrorMessages(["You cannot merge a person with themselves"]);
+    if (personToMergeWith.id === personUnderEdit!.id) {
+      changeErrorMessages(["The same person profile cannot be selected"]);
       return;
     }
 
     resetMessages();
-    const res = await mergePersons({
-      sourcePersonId: personUnderEdit!.id,
-      targetPersonId: targetPerson.id,
-    });
 
-    if (res.serverError || res.validationErrors) {
-      changeErrorMessages([getActionError(res)]);
-    } else {
-      const survivor = res.data!;
-      // The server decides which person survives based on createdAt, not which was source/target
-      const deletedId = survivor.id === personUnderEdit!.id ? targetPerson.id : personUnderEdit!.id;
-      changeSuccessMessage(`Successfully merged person ID ${deletedId} into person ID ${survivor.id}`);
-      setShowMergeUI(false);
-      onMerged?.(survivor, deletedId);
+    if (
+      confirm(
+        `Are you sure you would like to merge these person profiles: ${personUnderEdit!.name} (ID: ${personUnderEdit!.id}), ${personToMergeWith.name} (ID: ${personToMergeWith.id})?`,
+      )
+    ) {
+      const res = await mergePersons({ personId1: personUnderEdit!.id, personId2: personToMergeWith.id });
+
+      if (res.serverError || res.validationErrors) {
+        changeErrorMessages([getActionError(res)]);
+      } else {
+        const mergedPerson = res.data!;
+        const deletedPersonId = mergedPerson.id === personUnderEdit!.id ? personToMergeWith.id : personUnderEdit!.id;
+        changeSuccessMessage("Successfully merged person profiles");
+        onMerged!(mergedPerson, deletedPersonId);
+      }
     }
   };
 
@@ -202,37 +211,37 @@ function PersonForm({
       onCancel={onCancel}
       hideToasts // they're shown on the page itself
       hideSubmitButton={hasWcaId}
-      disableControls={isPending}
+      disableControls={isPending || showMergeUI}
       isLoading={isCreating || isUpdating}
     >
+      {personUnderEdit && (
+        <div className="tw:mb-4 tw:flex tw:gap-2">
+          <span>Person:</span>
+          <Person person={personUnderEdit} noFlag showWcaLink />
+          <span className="fs-6">(ID: {personUnderEdit.id})</span>
+        </div>
+      )}
       {personUnderEdit && creator !== undefined && (
         <CreatorDetails
           creator={creator}
           createdExternally={(personUnderEdit as any).createdExternally}
-          className="mb-3"
+          className="tw:mb-4"
         />
       )}
-      {personUnderEdit && <p>ID: {personUnderEdit.id}</p>}
-      {personUnderEdit && canApprove && !showMergeUI && (
-        <Button
-          onClick={() => {
-            resetMessages();
-            setShowMergeUI(true);
-          }}
-          disabled={isPending}
-          className="btn-warning btn-sm mb-3"
-        >
-          Merge with another person
+      {personUnderEdit && canApprovePersons && !showMergeUI && (
+        <Button onClick={() => setShowMergeUI(true)} disabled={isPending} className="btn-warning btn-sm mb-3">
+          Merge with another person profile
         </Button>
       )}
       {showMergeUI && (
-        <div className="mb-4 rounded border bg-light p-3">
+        <div className="mb-4 rounded border p-3">
           <h5 className="mb-2">Merge another person into this profile</h5>
           <p className="small mb-3 text-muted">
-            Select the person (B) to merge into this person (A). The person with the earlier creation date will be kept.
+            Select the person profile to merge this profile with. The profile that was created earlier will be kept and
+            updated.
           </p>
           <FormPersonInputs
-            title="Person to merge"
+            title="Profile to merge with"
             persons={mergePersonsList}
             setPersons={setMergePersonsList}
             personNames={mergePersonNames}
@@ -241,16 +250,16 @@ function PersonForm({
             display="default"
             disabled={isMerging}
           />
-          <div className="d-flex mt-2 gap-2">
-            <Button onClick={handleMerge} isLoading={isMerging} disabled={isPending} className="btn-warning btn-sm">
+          <div className="tw:mt-4 tw:flex tw:gap-2">
+            <Button onClick={handleMerge} isLoading={isMerging} disabled={isPending} className="btn-sm">
               Merge
             </Button>
             <Button
               onClick={() => {
+                resetMessages();
                 setShowMergeUI(false);
                 setMergePersonsList([null]);
                 setMergePersonNames([""]);
-                resetMessages();
               }}
               disabled={isPending}
               className="btn-secondary btn-sm"
