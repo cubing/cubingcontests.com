@@ -199,10 +199,10 @@ function ManagePersonsScreen({ personsData: initPersonsData, creators }: Props) 
     }
   };
 
-  const onMerged = (survivor: SelectPerson, deletedId: number) => {
+  const onMerged = (mergedPerson: SelectPerson, deletedPersonId: number) => {
     const entries = personsData.entries
-      .filter((p) => p.id !== deletedId)
-      .map((p) => (p.id === survivor.id ? survivor : p));
+      .filter((p) => p.id !== deletedPersonId)
+      .map((p) => (p.id === mergedPerson.id ? mergedPerson : p));
     mutate({ entries, totalEntries: personsData.totalEntries - 1 }, { revalidate: false });
     setMode("view");
   };
@@ -227,7 +227,6 @@ function ManagePersonsScreen({ personsData: initPersonsData, creators }: Props) 
           onSubmit={updateCompetitors}
           onCancel={mode !== "add-once" ? cancel : undefined}
           wcaIdInputHidden={spaceType !== "speedcubing"}
-          canApprove={canApprovePersons}
           onMerged={onMerged}
         />
       )}

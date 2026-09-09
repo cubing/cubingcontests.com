@@ -62,6 +62,7 @@ export const LogCodes = {
   RR0021: "delete person",
   RR0022: "approve person",
   RR0023: "approve persons",
+  RR0060: "merge person profiles",
   // Records
   RR0024: "set result record",
   RR0025: "set future result record",
